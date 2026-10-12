@@ -1,0 +1,42 @@
+---
+/**
+ * Physical card with 1px inner top reflection — the v2 hardware-feel container.
+ * Direct 1:1 port of `shared.tsx::PhysicalCard` (lines 60-83).
+ *
+ * Variants:
+ *   default → zinc border, white text
+ *   alert   → rose border + glow, rose text (e.g. GAP_RISK High)
+ *   success → emerald border + glow, emerald text (e.g. STATUS Live)
+ */
+interface Props {
+  title: string;
+  value: string;
+  sub?: string;
+  alert?: boolean;
+  success?: boolean;
+}
+const { title, value, sub, alert = false, success = false } = Astro.props;
+
+let borderColor = 'border-zinc-800/60';
+let textColor = 'text-zinc-100';
+let shadow = 'shadow-sm';
+
+if (alert) {
+  borderColor = 'border-rose-500/50';
+  textColor = 'text-rose-400';
+  shadow = 'shadow-[0_0_15px_rgba(244,63,94,0.1)]';
+} else if (success) {
+  borderColor = 'border-emerald-500/40';
+  textColor = 'text-emerald-400';
+  shadow = 'shadow-[0_0_15px_rgba(16,185,129,0.05)]';
+}
+---
+
+<div
+  class={`relative bg-[#0c0c0e] border ${borderColor} ${shadow} p-4 flex flex-col gap-1 transition-colors hover:border-zinc-700/80`}
+>
+  <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">{title}</div>
+  <div class={`text-xl md:text-2xl font-tight font-semibold tracking-tight ${textColor}`}>{value}</div>
+  {sub && <div class="text-[10px] md:text-[11px] text-zinc-500 font-mono mt-1 truncate">{sub}</div>}
+  <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/5 pointer-events-none"></div>
+</div>

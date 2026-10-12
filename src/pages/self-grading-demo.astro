@@ -1,0 +1,300 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+import TagChip from '../components/TagChip.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import TerminalBlock from '../components/TerminalBlock.astro';
+import CodeDecision from '../components/CodeDecision.astro';
+import PointerButton from '../components/PointerButton.astro';
+
+// The README's mechanisms table, with the demo.py line each one lives on (read 2026-10-11).
+const mechanisms = [
+  {
+    name: 'Strict JSON contract',
+    where: 'validate_brief · validate_verdicts',
+    line: 'demo.py:93, :118',
+    point: 'Model output is parsed fail-loud: wrong shape = crash with the offending payload, never a silent shrug.',
+  },
+  {
+    name: 'Grounded quotes',
+    where: 'validate_brief(obj, article)',
+    line: 'demo.py:113',
+    point: 'Every evidence_quote must be a verbatim excerpt of the article. The judge only ever sees the quote, so an invented quote would be the one way to smuggle a wrong claim past it.',
+  },
+  {
+    name: 'Frozen rubric',
+    where: 'rubric.md + sha256',
+    line: 'demo.py:259, :293',
+    point: "The judge's rules are versioned and hashed into every ledger row; a one-byte edit shows in the record.",
+  },
+  {
+    name: 'Adversarial judge',
+    where: 'JUDGE_PROMPT',
+    line: 'demo.py:51',
+    point: 'Evidence-only (no outside knowledge), exact-number rule, confidence caps.',
+  },
+  {
+    name: 'Hash-chained ledger',
+    where: 'ledger.jsonl · verify_ledger · --verify',
+    line: 'demo.py:231, :320',
+    point: "Each row carries its own sha256 and the previous row's; python demo.py --verify names the first row that was edited, reordered or removed.",
+  },
+];
+
+// What the scratch copy and the clean clone did on 2026-10-11. Every value here carries that date.
+const receipts = [
+  { cmd: 'python -m unittest discover tests -v', result: 'Ran 18 tests · OK' },
+  { cmd: 'python demo.py', result: 'exit 0 · 4/5 claims supported · 0.34 s on a fresh clone' },
+  { cmd: 'python demo.py --verify', result: 'LEDGER VERIFY OK: chain intact' },
+  { cmd: "grep -nE '^import|^from' demo.py", result: 'argparse · hashlib · json · sys · time · pathlib' },
+];
+---
+
+<Workspace
+  title="self-grading-demo · Ladon Davis"
+  workspacePath="WORK/SELF-GRADING-DEMO.MD"
+  bottomNavFile="work/self-grading-demo.md"
+  description="self-grading-demo: a tiny agent pipeline that grades its own output. An adversarial judge, a frozen rubric and a hash-chained ledger in one Python file. Runs in under a second from a clean clone with no API key. 18 tests. Public since 2026-08-13."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/WORK/SELF-GRADING-DEMO.MD
+      </div>
+      <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight mb-6">
+        self-grading-demo
+      </h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">Public</span>
+        <span class="bg-zinc-800/50 text-zinc-300 border border-zinc-700/50 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">MIT</span>
+        <span class="bg-zinc-800/50 text-zinc-300 border border-zinc-700/50 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">18 tests</span>
+        <TagChip>Python 3</TagChip>
+        <TagChip>stdlib only (replay)</TagChip>
+        <TagChip>Anthropic SDK (live)</TagChip>
+        <TagChip>sha256</TagChip>
+      </div>
+    </div>
+
+    {/* HERO: THE ONE-SENTENCE PITCH */}
+    <div class="relative bg-[#0c0c0e] border-2 border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.06)] p-6 md:p-8 mb-12">
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/10 pointer-events-none"></div>
+
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-5 font-mono text-[10px] uppercase tracking-widest">
+        <span class="text-zinc-500 font-semibold">The flagship</span>
+        <span class="text-zinc-400">github.com/viceatlas/self-grading-demo &middot; public since 2026-08-13</span>
+      </div>
+
+      <p class="font-tight font-semibold text-[22px] md:text-[26px] leading-[1.35] tracking-tight text-zinc-100 mb-4">
+        A tiny agent pipeline that <span class="text-emerald-400">grades its own output</span>.
+      </p>
+      <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 max-w-2xl">
+        An adversarial judge checks every claim against the evidence it was quoted from, under a frozen rubric, and the verdicts go into a hash-chained ledger. One file, 334 lines, standard library only in replay mode. Clone it and run it; the whole thing is over in under a second. One claim fails on purpose.
+      </p>
+
+      <div class="mt-6 pt-5 border-t border-zinc-800/60 flex flex-wrap items-center justify-between gap-4 font-mono text-[11px] text-zinc-400">
+        <span class="break-all">git clone https://github.com/viceatlas/self-grading-demo &amp;&amp; cd self-grading-demo &amp;&amp; python demo.py</span>
+        <span class="text-emerald-500/80 shrink-0">no API key &middot; no pip install</span>
+      </div>
+    </div>
+
+    {/* METRIC STAT ROW — each value carries its date or method */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <PhysicalCard title="Tests" value="18 / 18" sub="unittest · 2026-10-11" success />
+      <PhysicalCard title="Clean clone" value="0.34 s" sub="python demo.py · 2026-10-11" />
+      <PhysicalCard title="Dependencies" value="0" sub="replay mode · stdlib only" />
+      <PhysicalCard title="License" value="MIT" sub="LICENSE file in the repo" />
+    </div>
+
+    {/* SECTION 01: WHAT A RUN LOOKS LIKE — copied from README.md "What a run looks like" */}
+    <SectionHeader num="01" title="What a run looks like" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-6">
+      Replay mode, no keys. This is the output block from the repo's README, verbatim; the same run from a scratch copy of the tree on 2026-10-11 printed the same lines and exited 0.
+    </p>
+    <TerminalBlock path="~/self-grading-demo" command="python demo.py">
+      <pre class="m-0 overflow-x-auto whitespace-pre font-mono text-[12px] md:text-[13px] leading-[1.7] text-zinc-300">SELF-GRADING PIPELINE -- replay mode (no keys; --live uses the Anthropic API)
+rubric v1 (sha256 732186cb...) frozen before judging
+
+SYNTHESIZE  article.txt -&gt; brief: 'Northwind Robotics posts a record quarter' (5 claims, every quote verbatim)
+JUDGE       every claim vs. its quoted evidence, evidence-only, exact-number rule
+
+  <span class="text-emerald-400">[PASS]</span> c1  revenue $8.4M, up 21% YoY                          (0.97)
+  <span class="text-emerald-400">[PASS]</span> c2  shipped 1,240 Atlas units                          (0.95)
+  <span class="text-emerald-400">[PASS]</span> c3  99.2% fleet uptime across 312 sites                (0.93)
+  <span class="text-emerald-400">[PASS]</span> c4  headcount grew 61 -&gt; 86                            (0.96)
+  <span class="text-rose-400">[FAIL]</span> c5  Voltcraft deal worth $4.2M/yr
+         <span class="text-zinc-400">judge: Evidence quote states "$2.4M per year"; the claim says $4.2M. Exact-number rule: a quantitative claim must show its exact figure in the evidence. Unsupported.</span>
+
+VERDICT     4/5 claims supported
+LEDGER      row appended to ledger.jsonl (rubric hash, article hash, prev-row hash); chain intact across 1 row(s); history: 4/5</pre>
+    </TerminalBlock>
+    <div class="space-y-4 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        That failing claim is deliberate. The article says the Voltcraft agreement is worth <span class="font-mono text-[14px] text-zinc-100">$2.4M per year</span> (fixtures/article.txt:14-15); the bundled synthesizer output claims <span class="font-mono text-[14px] text-zinc-100">$4.2M/yr</span> (fixtures/replay/synthesize.json, claim c5). The rubric has an exact-number rule, so the claim fails at 0.98 confidence, with the reason in the record. A judge you've only ever seen approve things is a judge you know nothing about.
+      </p>
+    </div>
+
+    {/* SECTION 02: THE MECHANISMS */}
+    <SectionHeader num="02" title="The mechanisms" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-6">
+      Each one is about twenty lines. Read <span class="font-mono text-[14px] text-zinc-100">demo.py</span> top to bottom; the line numbers below are the file's as of 2026-10-11.
+    </p>
+    <div class="bg-[#050505] border border-zinc-800/80 rounded-sm mb-12 p-1 overflow-x-auto shadow-sm">
+      <div class="min-w-[640px] text-[12px] font-mono text-zinc-400">
+        <div class="grid grid-cols-12 px-3 py-2 border-b border-zinc-800 text-zinc-400 font-semibold text-[11px] uppercase tracking-wider bg-zinc-900/30">
+          <div class="col-span-3">Mechanism</div>
+          <div class="col-span-3">Where</div>
+          <div class="col-span-6">The point</div>
+        </div>
+        {mechanisms.map((m, i) => (
+          <div class={`grid grid-cols-12 px-3 py-3 border-b border-zinc-800/40 gap-x-3 ${i === mechanisms.length - 1 ? 'border-b-0' : ''}`}>
+            <div class="col-span-3 text-zinc-100 font-semibold">{m.name}</div>
+            <div class="col-span-3">
+              <div class="text-zinc-300 break-words">{m.where}</div>
+              <div class="text-zinc-500 text-[11px] mt-0.5">{m.line}</div>
+            </div>
+            <div class="col-span-6 font-sans text-[13px] leading-relaxed text-zinc-300">{m.point}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* SECTION 03: TWO OF THEM IN CODE — verified against demo.py on 2026-10-11 */}
+    <SectionHeader num="03" title="Two of them in code" />
+    <div class="mb-12">
+      <CodeDecision
+        caption="demo.py:103-114 — the grounding check inside validate_brief"
+        language="python"
+        lines={[103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114]}
+      >
+        <span>    haystack = <span class="text-emerald-400">_normspace</span>(article) <span class="text-rose-400">if</span> article <span class="text-rose-400">is not None else None</span></span>
+        <span>    <span class="text-rose-400">for</span> c <span class="text-rose-400">in</span> claims:</span>
+        <span>        <span class="text-rose-400">if not</span> isinstance(c, dict):</span>
+        <span>            <span class="text-emerald-400">_fail</span>(<span class="text-[#e2cb85]">"each claim must be an object"</span>, c)</span>
+        <span>        <span class="text-rose-400">for</span> field <span class="text-rose-400">in</span> (<span class="text-[#e2cb85]">"id"</span>, <span class="text-[#e2cb85]">"text"</span>, <span class="text-[#e2cb85]">"evidence_quote"</span>):</span>
+        <span>            <span class="text-rose-400">if not</span> isinstance(c.get(field), str) <span class="text-rose-400">or not</span> c[field].strip():</span>
+        <span>                <span class="text-emerald-400">_fail</span>(<span class="text-[#e2cb85]">"claim.%s must be a non-empty string"</span> % field, c)</span>
+        <span>        <span class="text-rose-400">if</span> c[<span class="text-[#e2cb85]">"id"</span>] <span class="text-rose-400">in</span> seen:</span>
+        <span>            <span class="text-emerald-400">_fail</span>(<span class="text-[#e2cb85]">"duplicate claim id %r"</span> % c[<span class="text-[#e2cb85]">"id"</span>], obj)</span>
+        <span>        seen.add(c[<span class="text-[#e2cb85]">"id"</span>])</span>
+        <span>        <span class="text-rose-400">if</span> haystack <span class="text-rose-400">is not None and</span> <span class="text-emerald-400">_normspace</span>(c[<span class="text-[#e2cb85]">"evidence_quote"</span>]) <span class="text-rose-400">not in</span> haystack:</span>
+        <span>            <span class="text-emerald-400">_fail</span>(<span class="text-[#e2cb85]">"claim.evidence_quote is not a verbatim excerpt of the article"</span>, c)</span>
+        <Fragment slot="description">
+          The judge only ever sees the quote. So the one way to smuggle a wrong claim past it is to invent the quote, and lines 113-114 close that door: whitespace-normalized, the quote must appear in the article or the run dies with the offending claim printed. The test is <span class="font-mono text-[13px] text-zinc-300">test_fabricated_quote_fails_loud</span>. What this does not prove: that the quote was the right sentence to quote. A true, cherry-picked quote is still the judge's problem, and the judge is a model.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="demo.py:236-247 — verify_ledger walks the chain"
+        language="python"
+        lines={[236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247]}
+      >
+        <span>    <span class="text-rose-400">for</span> i, line <span class="text-rose-400">in</span> enumerate(rows, <span class="text-[#a78bfa]">1</span>):</span>
+        <span>        <span class="text-rose-400">try</span>:</span>
+        <span>            entry = json.loads(line)</span>
+        <span>        <span class="text-rose-400">except</span> ValueError:</span>
+        <span>            <span class="text-rose-400">return</span> <span class="text-rose-400">False</span>, i, i, <span class="text-[#e2cb85]">"row is not JSON"</span></span>
+        <span>        want_prev = <span class="text-emerald-400">sha256</span>(prev) <span class="text-rose-400">if</span> prev <span class="text-rose-400">else None</span></span>
+        <span>        <span class="text-rose-400">if</span> entry.get(<span class="text-[#e2cb85]">"prev_sha256"</span>) != want_prev:</span>
+        <span>            <span class="text-rose-400">return</span> <span class="text-rose-400">False</span>, i, i, <span class="text-[#e2cb85]">"prev_sha256 does not match the previous row (reordered or removed?)"</span></span>
+        <span>        <span class="text-rose-400">if</span> entry.get(<span class="text-[#e2cb85]">"sha256"</span>) != <span class="text-emerald-400">entry_digest</span>(entry):</span>
+        <span>            <span class="text-rose-400">return</span> <span class="text-rose-400">False</span>, i, i, <span class="text-[#e2cb85]">"row digest does not match its contents (edited?)"</span></span>
+        <span>        prev = line</span>
+        <span>    <span class="text-rose-400">return</span> <span class="text-rose-400">True</span>, len(rows), <span class="text-rose-400">None</span>, <span class="text-[#e2cb85]">"chain intact"</span></span>
+        <Fragment slot="description">
+          Each row's sha256 covers everything in it but itself (entry_digest, demo.py:219-222); prev_sha256 is the hash of the previous line. Edit a verdict and the row digest breaks; delete or reorder a row and the next row's prev_sha256 breaks. Every run re-walks the chain before it prints the LEDGER line and exits nonzero if the chain is broken (demo.py:308-313); <span class="font-mono text-[13px] text-zinc-300">python demo.py --verify</span> does the walk alone (demo.py:322-325). The file is still opened in append mode by convention. Nothing stops a rewrite; the point is that a rewrite shows.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 04: WHAT AN INTERVIEWER WILL ASK — three of the ten questions a clean-clone review raised on 2026-10-11 */}
+    <SectionHeader num="04" title="What an interviewer will ask" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      A reviewer read the clone cold on 2026-10-11 and wrote ten questions against it. Three of them, with the answers as they stand in the code today.
+    </p>
+    <div class="space-y-8 mb-16">
+      <div class="flex flex-col gap-2">
+        <div class="font-mono text-[12px] md:text-[13px] text-zinc-100">
+          <span class="text-emerald-400/80">[Q1]</span> Rubric rule 3 caps confidence at 0.80 for paraphrases. Where is that enforced?
+        </div>
+        <div class="font-sans text-[14px] md:text-[15px] text-zinc-300 leading-relaxed pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5">
+          Only in the prompt. rubric.md:16-17 is interpolated into JUDGE_PROMPT at demo.py:270; validate_verdicts checks that confidence is a number in [0, 1] and nothing more (demo.py:132-134). Enforcing a paraphrase cap in code would need a paraphrase detector, which is a second judge. The honest framing is rubric rule 5: reasons are receipts, specific enough to re-derive from the quote, and a human audits them by reading.
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="font-mono text-[12px] md:text-[13px] text-zinc-100">
+          <span class="text-emerald-400/80">[Q2]</span> Your tests only exercise replay. How do you know the live path works?
+        </div>
+        <div class="font-sans text-[14px] md:text-[15px] text-zinc-300 leading-relaxed pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5">
+          From the tests, I don't. run(mode) selects the backend internally (demo.py:255), so no test can inject a stub that returns a malformed payload end to end; the 18 tests hit the validators directly and run replay. The refactor is run(mode, backend=None) plus a stub that returns garbage, which would prove the fail-loud path end to end. What I can say about the live path: the request shape was checked against the API documentation on 2026-10-11, and a refusal or a max_tokens truncation stops the run with a named reason (demo.py:161-164).
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="font-mono text-[12px] md:text-[13px] text-zinc-100">
+          <span class="text-emerald-400/80">[Q3]</span> The README says in production a prompt version must match or beat its predecessor's graded record or the run blocks. Show me.
+        </div>
+        <div class="font-sans text-[14px] md:text-[15px] text-zinc-300 leading-relaxed pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5">
+          Not in this repo. The gate lives in the private pipeline, <a href="/clawdbot" class="text-emerald-400 hover:text-emerald-300 no-underline border-b border-emerald-400/30 hover:border-emerald-400/60">Clawdbot</a>: a pure function plus a run driver wired to exit 1, 14 tests, and as of 2026-10-11 it has not yet blocked a run. What this repo has is the hook the gate needs: rubric_version is parsed (demo.py:212-216) and frozen into every row (demo.py:292), so two versions' rows can be compared. The gate is that comparison, made before a run is allowed to proceed.
+        </div>
+      </div>
+    </div>
+
+    {/* SECTION 05: WHERE IT SITS */}
+    <SectionHeader num="05" title="Where it sits" />
+    <div class="space-y-4 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-10">
+      <p>
+        This is the two-minute extraction of what the private pipeline does on a schedule: a judge that scores every synthesized claim against the evidence that was fetched for it, a prompt-version gate, decisions frozen before their outcomes land. Those systems are private; this repo is the mechanism, not the record. Everything in it is fictional sample data. Northwind Robotics does not exist.
+      </p>
+    </div>
+    <div class="grid gap-2 mb-16">
+      <PointerButton href="https://github.com/viceatlas/self-grading-demo" label="github.com/viceatlas/self-grading-demo" desc="the repo · MIT · public since 2026-08-13" external />
+      <PointerButton href="/clawdbot" label="~/WORKSPACE/WORK/CLAWDBOT.MD" desc="the private pipeline this is extracted from" />
+      <PointerButton href="/" label="~/WORKSPACE/RESUME/ABOUT.MD" desc="home" />
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated facts only */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">as measured 2026-10-11</div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <PhysicalCard title="Tests" value="18" sub="unittest · OK" success />
+        <PhysicalCard title="Clean clone" value="0.34 s" sub="python demo.py" />
+        <PhysicalCard title="Deps (replay)" value="0" sub="stdlib only" />
+        <PhysicalCard title="Public since" value="Aug 13" sub="2026 · MIT" />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3 flex items-center justify-between">
+          <span>Receipts</span>
+          <span class="bg-zinc-800 text-zinc-400 px-1 py-0.5 rounded-sm">2026-10-11</span>
+        </div>
+        <div class="font-mono text-[10px] bg-[#050505] border border-zinc-800/60 rounded-sm p-3">
+          <div class="space-y-3 text-zinc-400">
+            {receipts.map((r) => (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-zinc-300 break-all">$ {r.cmd}</span>
+                <span>{r.result}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3">Fixture</div>
+        <div class="font-mono text-[10px] text-zinc-400 space-y-1.5">
+          <div>rubric v1 &middot; sha256 732186cb&hellip;</div>
+          <div>article: Northwind Robotics (fictional)</div>
+          <div>5 claims &middot; 1 fails on purpose (c5)</div>
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

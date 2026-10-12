@@ -1,0 +1,19 @@
+---
+/**
+ * Terminal prompt line — `sys@local : ~/path $ command`
+ * Direct 1:1 port of `shared.tsx::Prompt` (lines 50-58).
+ */
+interface Props {
+  path: string;
+  cmd: string;
+}
+const { path, cmd } = Astro.props;
+---
+
+<div class="font-mono text-[11px] text-zinc-500 mt-10 mb-4 flex gap-2 select-none tracking-wide">
+  <span class="text-emerald-500/90 font-medium">sys@local</span>
+  <span class="text-zinc-600">:</span>
+  <span class="text-zinc-400">{path}</span>
+  <span class="text-zinc-600">$</span>
+  <span class="text-zinc-200">{cmd}</span>
+</div>

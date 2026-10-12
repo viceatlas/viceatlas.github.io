@@ -1,0 +1,153 @@
+---
+import '../styles/global.css';
+import WorkspaceChrome from '../components/WorkspaceChrome.astro';
+import ProjectExplorer from '../components/ProjectExplorer.astro';
+import ObservabilityPane from '../components/ObservabilityPane.astro';
+
+interface Props {
+  /** Page name. The tab title becomes "<page> · Ladon Davis" unless the name is already in it. */
+  title: string;
+  /** Mono path shown in the top chrome (e.g. "RESUME/ABOUT.MD"). */
+  workspacePath: string;
+  /** Filename shown in the bottom status bar (e.g. "resume/about.md"). */
+  bottomNavFile?: string;
+  /** Open Graph image path (relative to /). public/og/og-home.png is produced by the OG seat. */
+  ogImage?: string;
+  /** Meta description. */
+  description?: string;
+}
+
+const SITE_NAME = 'Ladon Davis';
+
+const {
+  title,
+  workspacePath,
+  bottomNavFile = 'index.md',
+  ogImage = '/og/og-home.png',
+  description = 'I build systems that grade their own work. Software Engineer — AI Applications, Seattle. viceatlas.com, self-grading-demo, role-scout.',
+} = Astro.props;
+
+const fullTitle = title.includes(SITE_NAME) ? title : `${title} · ${SITE_NAME}`;
+const utcNow = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageUrl = new URL(ogImage, Astro.site).toString();
+const hasObservability = Astro.slots.has('observability');
+
+const contactLinks = [
+  { label: 'github', href: 'https://github.com/viceatlas' },
+  { label: 'resume.pdf', href: '/resume.pdf' },
+  { label: 'email', href: 'mailto:cjdavis766@gmail.com' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" sizes="any" />
+
+    <!-- OG / Twitter -->
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImageUrl} />
+  </head>
+  <body
+    class="font-sans antialiased h-dvh w-full bg-[#09090b] text-zinc-400 flex flex-col overflow-hidden selection:bg-zinc-800 selection:text-zinc-100 relative"
+  >
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-[#0c0c0e] focus:text-emerald-400 focus:border focus:border-emerald-500/60 focus:px-3 focus:py-2 focus:font-mono focus:text-[12px] focus:uppercase focus:tracking-widest no-underline"
+    >
+      Skip to content
+    </a>
+
+    <WorkspaceChrome workspacePath={workspacePath} utcNow={utcNow} />
+
+    <!-- 3-pane workspace: left explorer (lg+), center main, right observability (lg+) -->
+    <div class="flex-1 flex overflow-hidden w-full relative z-10 min-h-0">
+      <ProjectExplorer />
+
+      <main id="main-content" class="flex-1 flex min-w-0 overflow-hidden">
+        <div class="flex-1 min-w-0 overflow-y-auto pane-scroll">
+          <!-- Phone nav: below lg the side panes are hidden, so the tree and the
+               three contact links live here, at the top of the scroll region. -->
+          <div class="lg:hidden border-b border-zinc-800/60 bg-[#0c0c0e]">
+            <details class="group">
+              <summary
+                class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden font-sans text-[12px] font-bold uppercase tracking-widest text-zinc-300"
+              >
+                <span class="flex items-center gap-2">
+                  <svg class="text-zinc-500 transition-transform group-open:rotate-90 motion-reduce:transition-none" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  Explorer
+                </span>
+                <span class="font-mono text-[10px] font-normal normal-case tracking-wider text-zinc-400">{workspacePath}</span>
+              </summary>
+              <div class="pb-2 border-t border-zinc-800/40">
+                <ProjectExplorer variant="inline" />
+              </div>
+            </details>
+            <nav aria-label="Contact" class="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5 border-t border-zinc-800/40 font-mono text-[12px] tracking-wide">
+              {contactLinks.map((c) => (
+                <a href={c.href} class="text-zinc-300 hover:text-emerald-400 no-underline">
+                  <span class="text-emerald-500" aria-hidden="true">&gt;</span> {c.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <div class="px-6 py-10 sm:px-10 lg:px-14 lg:py-12">
+            <slot />
+          </div>
+        </div>
+        <ObservabilityPane showDefault={!hasObservability}>
+          <slot name="observability" />
+        </ObservabilityPane>
+      </main>
+    </div>
+
+    <!-- Bottom status bar. The only numbers it carries are real: the build stamp. -->
+    <footer
+      class="h-[24px] bg-[#111] border-t border-zinc-800/80 text-[10px] font-mono text-zinc-400 flex items-center justify-between px-4 shrink-0 whitespace-nowrap overflow-hidden z-10 relative"
+    >
+      <div class="flex items-center gap-4">
+        <span>MAIN [unix]</span>
+        <span class="text-zinc-300">"{bottomNavFile}"</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="hidden sm:inline">build</span>
+        <span class="text-zinc-300">{utcNow}</span>
+      </div>
+    </footer>
+
+    <!-- Ambient cursor glow tracker -->
+    <script is:inline>
+      (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        let raf = 0;
+        document.addEventListener('mousemove', (e) => {
+          if (raf) return;
+          raf = requestAnimationFrame(() => {
+            document.body.style.setProperty('--cursor-x', e.clientX + 'px');
+            document.body.style.setProperty('--cursor-y', e.clientY + 'px');
+            raf = 0;
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

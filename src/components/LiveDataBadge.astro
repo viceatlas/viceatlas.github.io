@@ -1,0 +1,21 @@
+---
+/**
+ * Pulsing dot + "Live · last build YYYY-MM-DD HH:MM" in monospace.
+ * Top of any page reading from live data. Unused since the 2026-10-11 rewrite.
+ */
+interface Props {
+  timestamp: string;
+}
+const { timestamp } = Astro.props;
+---
+
+<div
+  class="inline-flex items-center gap-2 rounded-md border border-(--color-border) bg-(--color-bg-elev) px-3 py-1.5 font-mono text-[12px] text-(--color-fg-muted)"
+>
+  <span
+    class="h-1.5 w-1.5 animate-pulse rounded-full bg-(--color-emerald) shadow-[0_0_6px_var(--color-emerald)]"
+  ></span>
+  <span class="text-(--color-emerald)">Live</span>
+  <span class="text-(--color-fg-faint)">·</span>
+  <span>last build {timestamp}</span>
+</div>

@@ -1,0 +1,340 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import TagChip from '../components/TagChip.astro';
+import { health } from '../lib/live';
+
+/**
+ * Home — about.md. Every factual sentence on this page traces to a claim in
+ * Job_Hunt/fleet/claims.yaml with status LIVE or DATED (the id is noted beside
+ * each block), to his own timeline in Job_Hunt/ME.yaml, or to a value fetched
+ * at build time by src/lib/live.ts. Every number carries its date or method in
+ * the same sentence. The observability pane is the layout's default content
+ * (build-time facts only); this page supplies none of its own.
+ */
+
+// viceatlas /api/health, fetched once per build (memoized in live.ts). Used in
+// the viceatlas card below; the pane renders the same reading.
+const live = await health();
+
+// 01 · Selected work — three flagship cards. Facts: G1/G4; V1 V2 V5 V6 V8; L1 L2 L3 D2.
+const flagships = [
+  {
+    name: 'self-grading-demo',
+    href: '/self-grading-demo',
+    more: null,
+    external: 'https://github.com/viceatlas/self-grading-demo',
+    externalLabel: 'github.com/viceatlas/self-grading-demo',
+    tags: ['Python', 'stdlib only', 'no API key'],
+    lead:
+      'An agent pipeline that grades its own output. Public since 2026-08-13; it runs with no API key.',
+    facts: [
+      'From a clean clone on 2026-10-11, python demo.py exits 0 in 0.34 s with nothing beyond the standard library.',
+      '18 tests in tests/test_demo.py, counted on disk 2026-10-11.',
+    ],
+  },
+  {
+    name: 'viceatlas.com',
+    href: 'https://www.viceatlas.com',
+    more: { href: 'https://www.viceatlas.com/api/health', label: 'curl /api/health' },
+    external: 'https://www.viceatlas.com',
+    externalLabel: 'www.viceatlas.com',
+    tags: ['Next.js', 'TypeScript', 'Supabase / Postgres', 'Vercel'],
+    lead:
+      'A consumer product I built and run alone. Live since 2026-07-15, built for the GTA 6 launch on November 19, 2026. Its health endpoint is public: a stranger can curl /api/health.',
+    facts: [
+      '1,355 prerendered routes in the 2026-08-31 build; 1,323 URLs in the live sitemap on 2026-10-11.',
+      '6 Vercel cron routes and 2 scheduled GitHub Actions workflows, 100 of 100 recent runs green each on 2026-10-11.',
+      'Comment moderation that fails closed to a human review queue; per-user rate limits enforced in Postgres by 13 BEFORE INSERT triggers at 30 writes a minute.',
+    ],
+  },
+  {
+    name: 'honest-machine',
+    href: '/honest-machine',
+    more: null,
+    external: null,
+    externalLabel: 'source private · walk-through on request',
+    tags: ['Python', 'append-only', 'write-time fences'],
+    lead:
+      'The_Ledger: two append-only tables and nine write-time fences (seven at birth, two added after an incident). Every system deposits its prediction before the outcome exists and is graded after.',
+    facts: [
+      'The first backfill import faked its own timestamps; removing it took raw SQL around my own kernel. I built an immutable tombstone, a kind-registry fence, and two audits that fail on a reconstruction of that incident.',
+      'Exactly one tamper-evident kill so far: the Day_Edge drift coin, its bar frozen in the ledger on 2026-07-01 at 23:56 UTC, before the data. 63 tests collected 2026-10-11.',
+    ],
+  },
+];
+
+// 02 · How I got here — his timeline, in his words (ME.yaml identity.story_consistency,
+// written 2026-09-24; claim T3). Years kept. No age, no shop, no education line.
+const timeline = [
+  {
+    years: '2020',
+    text: 'Started coding to make something useful for a small business I was involved with. No computer science background. I had a problem in front of me and wanted to build the fix myself.',
+  },
+  {
+    years: '2021',
+    text: 'Shipped the first project other people depended on. It had to be fixable, and simple enough that someone could use it without me standing next to them.',
+  },
+  {
+    years: '2021–2022',
+    text: 'Small projects for local businesses: websites, internal tools, messy business problems that needed a bit of software. I handled the whole thing, from working out what they needed to fixing what broke after launch.',
+  },
+  {
+    years: '2022–2023',
+    text: 'More ambitious projects. Some failed; some had to be rewritten. That is where I learned the difference between code that works and software that is designed well.',
+  },
+  {
+    years: '2023–2024',
+    text: 'Machine learning, because rules kept failing on the problems I was hitting. Then the first project where the AI component mattered enough that the rest of the system had to be designed around it: evaluation, fallbacks, monitoring, and what happens when the model is wrong.',
+  },
+  {
+    years: '2025–2026',
+    text: 'Fewer projects, built deeper: systems I can open in an interview and explain for an hour. Public code and write-ups, because the work itself has to be the evidence.',
+  },
+  {
+    years: 'Today',
+    text: 'Applying for software engineering and applied AI roles in Seattle.',
+  },
+];
+
+// 03 · How I work — four principles from claim S3 and the demo; the dated facts are J1 and D2.
+const principles = [
+  {
+    id: '01',
+    name: 'FREEZE_BEFORE_OUTCOMES',
+    desc: 'Every forecast is deposited in an append-only ledger before the outcome exists, then graded after it. A call that can be edited after the fact is not a call.',
+  },
+  {
+    id: '02',
+    name: 'GRADE_AGAINST_EVIDENCE',
+    desc: 'A judge scores every synthesized claim against the evidence that was fetched for it, under a versioned rubric. Across 30 official runs from 2026-03-25 to 2026-10-08 it marked 205 of 232 claims supported; nobody has checked the judge against human labels yet.',
+  },
+  {
+    id: '03',
+    name: 'KILL_BARS_FIRST',
+    desc: 'The bar a result has to clear is written down before the data arrives. One tamper-evident kill so far: the Day_Edge drift coin, its bar frozen in the ledger on 2026-07-01 at 23:56 UTC. The answer was no, and the no stood.',
+  },
+  {
+    id: '04',
+    name: 'PLACE_FAILURES_FIRST',
+    desc: 'A failure goes on a ladder before anyone fixes it: what broke, and which layer should have caught it. The fix then has to answer that rung, not the symptom.',
+  },
+];
+
+// 04 · Get in touch — three real links.
+const contacts = [
+  { lbl: 'GITHUB', href: 'https://github.com/viceatlas', sub: 'github.com/viceatlas' },
+  { lbl: 'RESUME.PDF', href: '/resume.pdf', sub: 'one page' },
+  { lbl: 'EMAIL', href: 'mailto:cjdavis766@gmail.com', sub: 'cjdavis766@gmail.com' },
+];
+---
+
+<Workspace
+  title="About"
+  workspacePath="RESUME/ABOUT.MD"
+  bottomNavFile="resume/about.md"
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/RESUME/ABOUT.MD
+      </div>
+      <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight mb-2">
+        Ladon Davis
+      </h1>
+      <p class="font-mono text-[13px] text-zinc-400 tracking-wide mb-6">
+        Software Engineer &mdash; AI Applications &middot; Seattle, WA
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest inline-flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+          OPEN TO ROLES
+        </span>
+        <span class="bg-zinc-800/50 text-zinc-300 border border-zinc-700/50 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">
+          SEATTLE, WA
+        </span>
+      </div>
+    </div>
+
+    {/* HERO CARD — G3 headline; the tagline; intro from the positioning kit (V1 V6, J1 L1 mechanism, T1 T2); E1 gaps */}
+    <div class="relative bg-[#0c0c0e] border-2 border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.06)] p-6 md:p-8 mb-12">
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/10 pointer-events-none"></div>
+
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-5 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+        <span class="font-semibold">about.md</span>
+        <span>Ladon Davis &middot; Software Engineer &mdash; AI Applications &middot; Seattle</span>
+      </div>
+
+      <p class="font-tight font-semibold text-[24px] md:text-[28px] leading-[1.3] tracking-tight text-zinc-100 mb-2">
+        I build systems that <span class="text-emerald-400">grade their own work</span>.
+      </p>
+      <p class="font-mono text-[12px] uppercase tracking-widest text-emerald-500/80 mb-5">
+        AI that shows its work
+      </p>
+
+      <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 max-w-2xl">
+        viceatlas.com is mine, built and run alone, live since July 2026 and built for the GTA&nbsp;6 launch on November&nbsp;19, 2026.
+        Underneath it, a judge scores every claim against its evidence, and every forecast is frozen before the outcome, then graded.
+        Building and shipping software since 2020, in Seattle.
+      </p>
+
+      <p class="mt-4 font-mono text-[12px] leading-relaxed text-zinc-400">
+        <span class="text-zinc-500" aria-hidden="true">// gaps: </span>No model training, no CUDA, no Rust. I build the layer around the model.
+      </p>
+
+      <div class="mt-6 pt-5 border-t border-zinc-800/60 font-mono text-[11px] text-zinc-400">
+        <span>open_to: Software Engineer &middot; Applied AI &middot; <span class="text-emerald-500/80">Seattle on-site or hybrid first</span></span>
+      </div>
+    </div>
+
+    {/* SECTION 01: SELECTED WORK — three flagship cards */}
+    <SectionHeader num="01" title="Selected work" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      Three systems I can open and explain for an hour. Each card links to its page, or to the live site; every number on it carries the date it was measured.
+    </p>
+
+    <div class="grid grid-cols-1 gap-4 mb-16">
+      {flagships.map((p) => (
+        <article class="relative bg-[#0c0c0e] border border-zinc-800/60 p-5 md:p-6 flex flex-col gap-3 transition-colors hover:border-zinc-700/80 hover:bg-[#101013] group">
+          <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/5 pointer-events-none"></div>
+
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="text-zinc-100 font-tight font-bold text-xl tracking-tight">
+              <a
+                href={p.href}
+                target={p.href.startsWith('http') ? '_blank' : undefined}
+                rel={p.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                class="no-underline after:absolute after:inset-0 after:content-['']"
+              >
+                {p.name}{p.href.startsWith('http') && <span class="sr-only"> (opens in a new tab)</span>}
+              </a>
+            </h3>
+            <span class="text-zinc-500 group-hover:text-emerald-400 transition-colors text-[14px] mt-0.5" aria-hidden="true">&rarr;</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            {p.tags.map((t) => <TagChip>{t}</TagChip>)}
+          </div>
+
+          <p class="text-[14px] md:text-[15px] leading-relaxed text-zinc-300 font-sans">
+            {p.lead}
+          </p>
+
+          <ul class="space-y-1.5 text-[13px] md:text-[14px] leading-relaxed text-zinc-400 font-sans">
+            {p.facts.map((f) => (
+              <li class="flex gap-2">
+                <span class="text-emerald-500 shrink-0 font-mono" aria-hidden="true">&gt;</span>
+                <span>{f}</span>
+              </li>
+            ))}
+            {p.name === 'viceatlas.com' && (
+              <li class="flex gap-2 font-mono text-[12px]">
+                <span class="text-emerald-500 shrink-0" aria-hidden="true">&gt;</span>
+                <span>
+                  /api/health: <span class={live.healthy ? 'text-emerald-400' : 'text-rose-400'}>{live.status}</span>
+                  {' '}&middot; fetched {live.fetchedAt} (at build)
+                </span>
+              </li>
+            )}
+          </ul>
+
+          <div class="mt-auto pt-3 border-t border-zinc-800/60 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px]">
+            {p.external ? (
+              <a
+                href={p.external}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="relative z-10 text-emerald-400 hover:text-emerald-300 no-underline border-b border-emerald-400/30 hover:border-emerald-400/60"
+              >
+                {p.externalLabel} <span aria-hidden="true">&#8599;</span><span class="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : (
+              <span class="text-zinc-400">{p.externalLabel}</span>
+            )}
+            {p.more ? (
+              <a
+                href={p.more.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="relative z-10 text-zinc-400 hover:text-zinc-200 no-underline"
+              >
+                {p.more.label} <span aria-hidden="true">&#8599;</span><span class="sr-only">(opens in a new tab)</span>
+              </a>
+            ) : (
+              <a href={p.href} class="relative z-10 text-zinc-400 hover:text-zinc-200 no-underline">
+                read more <span aria-hidden="true">&rarr;</span>
+              </a>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    {/* SECTION 02: HOW I GOT HERE — his timeline, his words (ME.yaml, 2026-09-24) */}
+    <SectionHeader num="02" title="How I got here" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-6">
+      There was never one big career switch. Building a website led to backend work; backend work led to databases and infrastructure; working with data led to machine learning, and that led to the systems around today&rsquo;s models. Years of following the next problem deeper.
+    </p>
+    <ol class="mb-16 border-l border-zinc-800/80 ml-[6px]">
+      {timeline.map((t) => (
+        <li class="relative pl-7 pb-6 last:pb-0">
+          <span class="absolute left-[-4px] top-[7px] w-[7px] h-[7px] rounded-full bg-emerald-500/80 ring-4 ring-[#09090b]" aria-hidden="true"></span>
+          <div class="font-mono text-[12px] text-emerald-400 tracking-widest mb-1">{t.years}</div>
+          <p class="text-[14px] md:text-[15px] leading-relaxed text-zinc-300 font-sans">{t.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    {/* SECTION 03: HOW I WORK — S3, J1 (dated), D2; then E2 */}
+    <SectionHeader num="03" title="How I work" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      The apparatus of proof is the asset. Four rules, each with the receipt that made it a rule.
+    </p>
+
+    <div class="space-y-6 mb-10">
+      {principles.map((p) => (
+        <div class="flex flex-col gap-1">
+          <h3 class="font-mono text-[12px] md:text-[13px] font-normal text-zinc-200">
+            <span class="text-zinc-400" aria-hidden="true">[{p.id}]</span> {p.name}
+          </h3>
+          <p class="font-sans text-[14px] md:text-[15px] leading-relaxed text-zinc-400 pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5">
+            {p.desc}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    <div class="mb-16 bg-[#0c0c0e] border border-zinc-800/60 p-5 border-l-2 border-l-emerald-500/60">
+      <div class="text-[10px] uppercase tracking-widest text-emerald-400 font-mono font-bold mb-2">
+        The honest part
+      </div>
+      <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-200 font-sans">
+        Nobody outside my own head has reviewed this code yet. That is why I&rsquo;m applying to a team.
+      </p>
+    </div>
+
+    {/* SECTION 04: GET IN TOUCH — three real links */}
+    <SectionHeader num="04" title="Get in touch" />
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      {contacts.map((c) => (
+        <a
+          href={c.href}
+          class="bg-[#0a0a0c] text-zinc-300 border border-zinc-700 py-4 px-6 font-mono tracking-widest text-[13px] hover:bg-zinc-800 hover:text-white hover:border-emerald-500/50 transition-colors shadow-sm text-center group no-underline flex flex-col items-center gap-1"
+        >
+          <span class="uppercase font-bold"><span class="text-emerald-500" aria-hidden="true">&gt;</span> {c.lbl}</span>
+          <span class="text-[11px] text-zinc-400 normal-case tracking-normal group-hover:text-zinc-300">{c.sub}</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="text-[13px] font-mono text-zinc-400 mb-24 max-w-xl">
+      <span class="text-zinc-500" aria-hidden="true">// </span>fastest reply via email
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8" aria-hidden="true">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+</Workspace>

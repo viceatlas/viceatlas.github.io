@@ -1,0 +1,86 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import FatalConstraintCallout from '../components/FatalConstraintCallout.astro';
+import PointerButton from '../components/PointerButton.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+
+const requestedPath = Astro.url.pathname || '/unknown';
+
+// Every route the workspace serves, plus the live product (external). The count
+// in the callout is derived from this list, so it cannot drift from the buttons.
+const paths: { href: string; label: string; desc: string; external?: boolean }[] = [
+  { href: '/', label: '~/WORKSPACE/RESUME/ABOUT.MD', desc: 'home · about + contact' },
+  { href: '/experience-json', label: '~/WORKSPACE/RESUME/EXPERIENCE.JSON', desc: 'machine-readable resume' },
+  { href: '/self-grading-demo', label: '~/WORKSPACE/WORK/SELF-GRADING-DEMO.MD', desc: 'the public demo' },
+  { href: 'https://www.viceatlas.com', label: 'https://www.viceatlas.com', desc: 'the live product', external: true },
+  { href: '/honest-machine', label: '~/WORKSPACE/WORK/HONEST-MACHINE.MD', desc: 'the ledger and the method' },
+  { href: '/clawdbot', label: '~/WORKSPACE/WORK/CLAWDBOT.MD', desc: 'the research pipeline' },
+  { href: '/role-scout', label: '~/WORKSPACE/WORK/ROLE-SCOUT.MD', desc: 'the job-discovery pipeline' },
+  { href: '/forecasting-engines', label: '~/WORKSPACE/WORK/FORECASTING-ENGINES.MD', desc: 'the forecasting engines' },
+  { href: '/clients', label: '~/WORKSPACE/CLIENTS/INDEX.MD', desc: 'client work' },
+];
+---
+
+<Workspace
+  title="404 · Not found"
+  workspacePath="[resource_not_found]"
+  bottomNavFile="404"
+  description="404 — the requested workspace path was not found."
+>
+  <div
+    class="mb-8 border border-zinc-800/80 bg-[#0c0c0e] px-5 py-4 font-mono text-[13px] leading-[1.7]"
+  >
+    <div>
+      <span class="text-emerald-500/90">sys@local</span>
+      <span class="text-zinc-500">: ~ $</span>
+      <span class="text-zinc-200"> cat {requestedPath}</span>
+    </div>
+    <div class="text-rose-400">cat: {requestedPath}: No such file or directory</div>
+    <div class="text-zinc-400">exit code: 404</div>
+  </div>
+
+  <h1 class="mb-4 font-tight text-[32px] font-semibold leading-tight tracking-[-0.02em] text-zinc-100">
+    This page doesn&rsquo;t exist.
+  </h1>
+  <p class="mb-8 max-w-xl text-zinc-300">
+    The link you followed points at a path that isn&rsquo;t in this workspace.
+    If you got here from a link I control, tell me and I&rsquo;ll fix it.
+  </p>
+
+  <FatalConstraintCallout label="WORKSPACE INTEGRITY">
+    &gt; WORKSPACE_INTEGRITY_OK · {paths.length} paths available below
+  </FatalConstraintCallout>
+
+  <h2 class="mb-3 mt-8 font-mono text-[11px] font-normal uppercase tracking-[0.1em] text-zinc-400">
+    AVAILABLE PATHS
+  </h2>
+  <div class="grid gap-2">
+    {paths.map((p) => <PointerButton href={p.href} label={p.label} desc={p.desc} external={p.external} />)}
+  </div>
+
+  <div class="mt-10 border-t border-zinc-800/40 pt-6 font-mono text-[12px] text-zinc-400">
+    <span aria-hidden="true">// </span>if you got here from a broken link ·
+    <a href="mailto:cjdavis766@gmail.com" class="text-zinc-300 hover:text-emerald-400">
+      cjdavis766@gmail.com
+    </a> · I&rsquo;ll fix it
+  </div>
+
+  <Fragment slot="observability">
+    <div class="space-y-4">
+      <div>
+        <div class="mb-2 text-[10px] uppercase tracking-widest text-zinc-400 font-semibold">
+          ERR CODE
+        </div>
+        <PhysicalCard title="HTTP" value="404" sub="NOT_FOUND" alert />
+      </div>
+      <div>
+        <div class="mb-2 text-[10px] uppercase tracking-widest text-zinc-400 font-semibold">
+          TRACE
+        </div>
+        <div class="text-zinc-400 font-mono text-[11px]">
+          router.match → <span class="text-rose-400">none</span> · {paths.length} routes known
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

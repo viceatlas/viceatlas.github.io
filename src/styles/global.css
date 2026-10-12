@@ -1,0 +1,198 @@
+/* Caveat is the handwritten font Figma uses for Excalidraw-style diagram labels.
+   Must precede `@import "tailwindcss"` per CSS spec (all @imports before any rules). */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+/* ==============================================
+   v2 IDE / Workspace Design Tokens
+   Locked palette from Figma Gemini Pro work.
+   ============================================== */
+@theme {
+  /* Foundations - zinc-950 family */
+  --color-bg: #09090b;
+  --color-bg-elev: #0c0c0e;
+  --color-bg-elev-2: #131316;
+  --color-border: #27272a;
+  --color-border-soft: #1f1f23;
+
+  /* Foreground.
+     fg-muted is zinc-400 (7.6:1 on --color-bg): the floor for any text that
+     carries meaning at 10-13px. fg-faint is zinc-500 (4.1:1): decorative
+     glyphs, gutters, and text at 18px or larger only. The April values
+     (zinc-500 / zinc-600) failed WCAG AA for small text; measured 2026-10-11. */
+  --color-fg: #fafafa;
+  --color-fg-muted: #9f9fa9;
+  --color-fg-faint: #71717a;
+
+  /* Accents */
+  --color-emerald: #10b981;
+  --color-emerald-soft: rgba(16, 185, 129, 0.08);
+  --color-rose: #f43f5e;
+  --color-rose-soft: rgba(244, 63, 94, 0.08);
+
+  /* Semantic confidence pill */
+  --color-confidence: #a78bfa;
+  --color-confidence-soft: rgba(167, 139, 250, 0.12);
+
+  /* Type stacks. The first three become Tailwind utilities `font-sans`,
+     `font-display`, `font-mono`. The last two become `font-tight` and
+     `font-hand` — used by pages exactly as `class="font-tight"` etc. */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-tight: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-hand: 'Caveat', cursive;
+}
+
+/* ==============================================
+   Base styles - workspace shell
+   ============================================== */
+:root {
+  color-scheme: dark;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Tabular numerals for any element using mono - keeps stat columns aligned */
+[class*="font-mono"], code, kbd, pre, samp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==============================================
+   Keyboard focus - one visible ring for the whole system.
+   Only on :focus-visible, so mouse clicks stay quiet.
+   ============================================== */
+a:focus-visible,
+summary:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-emerald);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ==============================================
+   Ambient cursor glow - subtle radial light
+   that follows the mouse. Set via JS in layout.
+   ============================================== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    600px circle at var(--cursor-x, 50%) var(--cursor-y, 50%),
+    rgba(255, 255, 255, 0.025),
+    transparent 50%
+  );
+  transition: background 200ms ease-out;
+}
+
+/* ==============================================
+   Physical card top-edge reflection
+   ============================================== */
+.physical-edge {
+  position: relative;
+}
+.physical-edge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ==============================================
+   Scrollbar - matches Figma's exact spec from shared.tsx GlobalStyles
+   ============================================== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ==============================================
+   Pane scroll utilities (from Figma's GlobalStyles)
+   Used by Layout's project explorer + observability panes.
+   ============================================== */
+.pane-scroll { overflow-y: auto; overflow-x: hidden; height: 100%; }
+.pane-scroll-x { overflow-x: auto; overflow-y: hidden; }
+
+/* ==============================================
+   Cursor blink animation (Figma's terminal-style cursor)
+   ============================================== */
+.cursor-blink { animation: blink 1s step-end infinite; }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ==============================================
+   Project Explorer — VS Code-style chevrons + indent guides
+   ============================================== */
+
+/* Hide native disclosure marker on <summary> */
+.explorer-folder summary { list-style: none; }
+.explorer-folder summary::-webkit-details-marker { display: none; }
+
+/* Chevron rotates from collapsed (right) to expanded (down) on [open] */
+.folder-chevron {
+  transition: transform 120ms ease;
+  flex-shrink: 0;
+}
+.explorer-folder[open] > summary > .folder-chevron {
+  transform: rotate(90deg);
+}
+
+/* Indent guide line — vertical 1px line on the left of children when open.
+   Position computed from --depth set per-folder. The line sits in the
+   children's left padding gutter, aligned to the parent chevron's column.
+   Skipped at depth 0 (root folder) — the line would render against the
+   pane's left edge with nothing to connect, just visual noise. */
+.explorer-folder { position: relative; }
+.explorer-folder[open]:not([style="--depth: 0"])::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--depth, 0) * 12px + 14px);
+  top: 26px;        /* below the summary row */
+  bottom: 4px;      /* short of bottom edge */
+  width: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+/* ==============================================
+   Reduced motion - the status-dot pulse, the terminal cursor blink,
+   the chevron turn and the glow fade all stop. The cursor-glow script in
+   the layout already checks the same media query before it starts.
+   Un-layered so it beats Tailwind's layered utilities without a specificity fight.
+   ============================================== */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .cursor-blink {
+    animation: none !important;
+  }
+  .folder-chevron,
+  body::before {
+    transition: none !important;
+  }
+}

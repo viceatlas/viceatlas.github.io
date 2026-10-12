@@ -1,0 +1,293 @@
+---
+import Workspace from '../../layouts/Workspace.astro';
+import Prompt from '../../components/Prompt.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import TagChip from '../../components/TagChip.astro';
+import PhysicalCard from '../../components/PhysicalCard.astro';
+import TerminalBlock from '../../components/TerminalBlock.astro';
+import PointerButton from '../../components/PointerButton.astro';
+import CodeDecision from '../../components/CodeDecision.astro';
+
+// Status was measured by hand with curl on 2026-10-11 (01:13 UTC on the 12th) and the date is
+// printed next to every reading. Nothing on this page is fetched at build: a dated reading a
+// visitor can repeat beats a live badge that can go stale without saying so.
+const CHECKED = '2026-10-11';
+
+type Tone = 'live' | 'parked';
+const pill: Record<Tone, string> = {
+  live: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  parked: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+};
+
+type Client = {
+  title: string;
+  domain: string;
+  href: string | null;
+  tone: Tone;
+  status: string;
+  chips: string[];
+  blurb: string;
+  facts: [string, string][];
+};
+
+const clients: Client[] = [
+  {
+    title: 'Find Your Light Psychiatry',
+    domain: 'www.findyourlightpsychiatry.org',
+    href: 'https://www.findyourlightpsychiatry.org/',
+    tone: 'live',
+    status: `LIVE · CHECKED ${CHECKED}`,
+    chips: ['NEXT.JS', 'VERCEL', 'TELEHEALTH', 'HIPAA-POSITIONED'],
+    blurb:
+      'A psychiatric practice in Seattle and Bellevue that sees patients across Washington State by telehealth. Next.js, deployed on Vercel. Sensitive subject matter and a HIPAA-positioned information architecture; positioned is the exact word, not certified.',
+    facts: [
+      ['status', `HTTP 200 · Server: Vercel · X-Nextjs-Prerender: 1 (curl, ${CHECKED})`],
+      ['stack', 'Next.js on Vercel, read from the response headers'],
+    ],
+  },
+  {
+    title: 'Devonce Lennix',
+    domain: 'devoncelennix.com',
+    href: null,
+    tone: 'parked',
+    status: `DELIVERED 2026-04-12 · DOMAIN PARKED ${CHECKED}`,
+    chips: ['NEXT.JS 16', 'REACT 19', 'TYPESCRIPT', 'TAILWIND 4', 'MDX'],
+    blurb:
+      'Personal site for a Tulsa entrepreneur, youth soccer coach and real-estate investor: about, coaching and real-estate pages, two Insights posts in MDX, Person JSON-LD, sitemap and robots routes, an Open Graph image route. All of the copy lives in one TypeScript file, content/site-config.ts, so a bio change never touches a component.',
+    facts: [
+      ['delivered', '2026-04-12 · commit 8c64ed7 · the repo remote is the client\'s own GitHub'],
+      ['domain', `registrar parking page (Server: namecheap-web) on ${CHECKED}`],
+      ['stack', 'next 16.2.3 · react 19.2.4 · tailwindcss 4 · @next/mdx 16.2.3 · motion · lucide-react (package.json)'],
+    ],
+  },
+  {
+    title: 'First Choice Auto Spa',
+    domain: 'firstchoiceautospa.com',
+    href: null,
+    tone: 'parked',
+    status: `BUILT APRIL 2026 · DOMAIN PARKED ${CHECKED}`,
+    chips: ['NEXT.JS 16', 'REACT 19', 'TYPESCRIPT', 'TAILWIND 4', 'ZOD', 'RESEND'],
+    blurb:
+      'Marketing and booking site for an owner-operated mobile detailing business serving Tulsa and Oklahoma City: service menu, three packages, before-and-after gallery, service-area page, reviews, FAQ, LocalBusiness JSON-LD. The booking form is validated with Zod in the browser (react-hook-form) and again in the route handler, which rate-limits by IP at 5 requests an hour, drops honeypot submissions without a word, and sends the request through Resend.',
+    facts: [
+      ['built', 'April 2026 · booking form revised 2026-05-03 (file dates)'],
+      ['domain', `registrar parking page (Server: namecheap-web) on ${CHECKED}`],
+      ['stack', 'next 16.2.3 · react 19.2.4 · tailwindcss 4 · react-hook-form 7 + zod 3 · resend 4 (package.json)'],
+    ],
+  },
+];
+
+// The exact commands run on CHECKED and the header lines they returned.
+const checks = [
+  {
+    cmd: "curl -sI -L https://www.findyourlightpsychiatry.org/ | grep -iE '^(HTTP|Server|X-Nextjs-Prerender)'",
+    out: ['HTTP/1.1 200 OK', 'Server: Vercel', 'X-Nextjs-Prerender: 1'],
+  },
+  {
+    cmd: "curl -sI -L http://devoncelennix.com | grep -iE '^(HTTP|Server)'",
+    out: ['HTTP/1.1 200 OK', 'Server: namecheap-web'],
+  },
+  {
+    cmd: "curl -sI -L http://firstchoiceautospa.com | grep -iE '^(HTTP|Server)'",
+    out: ['HTTP/1.1 200 OK', 'Server: namecheap-web'],
+  },
+];
+
+// Read from the two repos on this machine on CHECKED. Each row names its file.
+const decisions = [
+  {
+    id: 'COPY_IN_ONE_FILE',
+    desc: "Devonce: every section's copy sits in content/site-config.ts and the pages import it (app/page.tsx reads it 19 times). A bio change is a one-file edit, with no CMS to run.",
+  },
+  {
+    id: 'TAILWIND_4_VIA_POSTCSS',
+    desc: 'Both repos: tailwindcss 4 through @tailwindcss/postcss, and no tailwind.config file in either tree.',
+  },
+  {
+    id: 'MDX_FOR_POSTS',
+    desc: 'Devonce: the two Insights posts are MDX pages under app/insights (@next/mdx); section copy stays in TypeScript.',
+  },
+  {
+    id: 'VALIDATE_TWICE',
+    desc: 'First Choice: one booking schema in Zod, checked in the browser with react-hook-form and again in app/api/book/route.ts before anything is emailed.',
+  },
+];
+
+const pointerClass =
+  'bg-transparent border border-zinc-800 text-zinc-400 py-2.5 px-3 uppercase hover:bg-zinc-800 hover:text-zinc-200 transition-colors text-left flex justify-between items-center group no-underline cursor-pointer';
+---
+
+<Workspace
+  title="Client Work · Ladon Davis"
+  workspacePath="CLIENTS/INDEX.MD"
+  bottomNavFile="clients/index.md"
+  description="Three client sites built end to end on Next.js: a Seattle-area psychiatric practice (live, checked 2026-10-11), a Tulsa personal site (delivered 2026-04-12) and a Tulsa mobile-detailing business (built April 2026)."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-10">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest uppercase">
+        ~/WORKSPACE/CLIENTS/INDEX.MD
+      </div>
+      <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight mb-6">Client Work</h1>
+      <div class="flex flex-wrap gap-2 mb-6">
+        <span class="bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">
+          SITES: 3
+        </span>
+        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">
+          LIVE TODAY: 1 · {CHECKED}
+        </span>
+        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">
+          DOMAINS PARKED: 2 · {CHECKED}
+        </span>
+      </div>
+      <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans max-w-2xl">
+        Three sites for small businesses, each one alone: figuring out what they needed, building it, putting it online, and fixing what went wrong afterward. One is live today. Two were built in April 2026 and their domains sit on registrar parking pages as of {CHECKED}. Status below was measured with curl, not assumed.
+      </p>
+    </div>
+
+    {/* SECTION 01 // STATUS_CHECK — the real commands and what they returned */}
+    <SectionHeader num="01" title="STATUS_CHECK" />
+    <p class="text-[14px] md:text-[15px] leading-relaxed text-zinc-400 font-sans mb-6">
+      Run on {CHECKED} from this machine. A 200 from <span class="font-mono text-zinc-300">namecheap-web</span> is the registrar's parking page, not the site.
+    </p>
+    {checks.map((c) => (
+      <TerminalBlock path="~/clients" command={c.cmd}>
+        {c.out.map((line) => <div>{line}</div>)}
+      </TerminalBlock>
+    ))}
+
+    {/* SECTION 02 // THE_SITES */}
+    <SectionHeader num="02" title="THE_SITES" />
+    <Prompt path="~/clients" cmd="ls -l" />
+
+    <div class="flex flex-col gap-6 mb-16">
+      {clients.map((c) => (
+        <article class="physical-edge relative bg-(--color-bg-elev) border border-(--color-border) rounded-sm p-5 md:p-6 transition-colors hover:border-zinc-700/80">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+            <h3 class="text-zinc-200 font-tight font-bold text-xl tracking-tight">{c.title}</h3>
+            <span class={`border text-[10px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest shrink-0 self-start ${pill[c.tone]}`}>
+              {c.status}
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            {c.chips.map((chip) => <TagChip>{chip}</TagChip>)}
+          </div>
+          <p class="text-[14px] md:text-[15px] leading-relaxed text-zinc-300 font-sans mb-5">{c.blurb}</p>
+          <dl class="font-mono text-[11px] md:text-[12px] border-t border-(--color-border) pt-3 flex flex-col gap-2 m-0">
+            {c.facts.map(([k, v]) => (
+              <div class="flex flex-col sm:flex-row sm:gap-4">
+                <dt class="text-zinc-400 uppercase tracking-widest sm:w-24 shrink-0">{k}</dt>
+                <dd class="text-zinc-300 m-0">{v}</dd>
+              </div>
+            ))}
+          </dl>
+          {c.href ? (
+            <div class="mt-5">
+              <PointerButton href={c.href} label={`VISIT :: ${c.domain}`} desc={`HTTP 200 on ${CHECKED}`} external />
+            </div>
+          ) : (
+            <div class="mt-5 font-mono text-[11px] text-zinc-400">{c.domain} · no link while the domain is parked</div>
+          )}
+        </article>
+      ))}
+    </div>
+
+    {/* SECTION 03 // STACK_DECISIONS — verified against the two repos on this machine */}
+    <SectionHeader num="03" title="STACK_DECISIONS" />
+    <p class="text-[14px] md:text-[15px] leading-relaxed text-zinc-400 font-sans mb-8">
+      Read from the two repos on this machine on {CHECKED}. The practice site has no repo here, so only its headers are quoted above.
+    </p>
+
+    <div class="space-y-6 mb-10">
+      {decisions.map((d) => (
+        <div class="flex flex-col gap-1">
+          <div class="font-mono text-[12px] md:text-[13px] text-zinc-300">{d.id}</div>
+          <div class="font-sans text-[14px] md:text-[15px] text-zinc-400 pl-4 border-l border-zinc-800/80 ml-1 py-0.5">
+            {d.desc}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <CodeDecision
+      caption="Devonce_lennix_Bio/app/layout.tsx:2–3, 21–25 · verified 2026-10-11"
+      language="typescript"
+      lines={[2, 3, 21, 22, 23, 24, 25]}
+    >
+      <span>{'import { Geist, Geist_Mono } from "next/font/google";'}</span>
+      <span>{'import { Playfair_Display } from "next/font/google";'}</span>
+      <span>{'const playfair = Playfair_Display({'}</span>
+      <span>{'  variable: "--font-playfair",'}</span>
+      <span>{'  subsets: ["latin"],'}</span>
+      <span>{'  display: "swap",'}</span>
+      <span>{'});'}</span>
+      <Fragment slot="description">
+        Playfair Display for headlines, Geist for body and Geist Mono for labels, all through next/font, so the fonts are self-hosted at build and no request goes to Google at runtime. A serif display over a sans body gives a personal site some editorial weight; most choose one or the other.
+      </Fragment>
+    </CodeDecision>
+
+    <CodeDecision
+      caption="first_choice_auto_spa/app/api/book/route.ts:29–30, 48–60 · verified 2026-10-11"
+      language="typescript"
+      lines={[29, 30, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]}
+    >
+      <span>{'  const ip = getClientIp(request);'}</span>
+      <span>{'  const rl = checkRateLimit(`book:${ip}`, 5, 60 * 60 * 1000);'}</span>
+      <span>{'  const parsed = bookingSchema.safeParse(body);'}</span>
+      <span>{'  if (!parsed.success) {'}</span>
+      <span>{'    return NextResponse.json('}</span>
+      <span>{'      { error: "Invalid form data", issues: parsed.error.flatten() },'}</span>
+      <span>{'      { status: 400 },'}</span>
+      <span>{'    );'}</span>
+      <span>{'  }'}</span>
+      <span>{' '}</span>
+      <span>{'  const data = parsed.data;'}</span>
+      <span>{' '}</span>
+      <span>{'  if (data.company.trim().length > 0) {'}</span>
+      <span>{'    return NextResponse.json({ ok: true });'}</span>
+      <span>{'  }'}</span>
+      <Fragment slot="description">
+        The Zod schema runs in the browser for instant feedback (react-hook-form) and again here, where it counts. Five requests an hour per IP, a 400 with the flattened issues on bad data, and a honeypot field that answers bots with a cheerful 200 and sends nothing.
+      </Fragment>
+    </CodeDecision>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8 mt-12">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated counts only */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="grid grid-cols-1 gap-3">
+        <PhysicalCard title="Sites shipped" value="3" sub="Next.js, all three" />
+        <PhysicalCard title="Live today" value="1" sub={`curl · ${CHECKED}`} success />
+        <PhysicalCard title="Domains parked" value="2" sub={`registrar page · ${CHECKED}`} />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3">Remote Pointers</div>
+        <div class="flex flex-col gap-2 font-mono text-[11px]">
+          <a href="https://www.findyourlightpsychiatry.org/" target="_blank" rel="noopener noreferrer" class={pointerClass}>
+            <span class="truncate pr-2">&gt; findyourlightpsychiatry.org<span class="sr-only"> (opens in a new tab)</span></span>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500 shrink-0" aria-hidden="true">↗</span>
+          </a>
+          <a href="/" class={pointerClass}>
+            <span>&gt; about.md</span>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500" aria-hidden="true">↗</span>
+          </a>
+          <a href="/experience-json" class={pointerClass}>
+            <span>&gt; experience.json</span>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500" aria-hidden="true">↗</span>
+          </a>
+          <a href="mailto:cjdavis766@gmail.com" class={pointerClass}>
+            <span>&gt; contact</span>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

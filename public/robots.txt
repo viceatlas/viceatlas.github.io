@@ -1,0 +1,3 @@
+# No Sitemap line yet: @astrojs/sitemap is not installed (package.json, 2026-10-11).
+User-agent: *
+Allow: /

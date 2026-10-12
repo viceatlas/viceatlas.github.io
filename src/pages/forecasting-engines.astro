@@ -1,0 +1,360 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+import TagChip from '../components/TagChip.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CodeDecision from '../components/CodeDecision.astro';
+import PointerButton from '../components/PointerButton.astro';
+
+// Truth rules for this page: every number carries its date or its method in the same
+// sentence. Sources: Job_Hunt/fleet/claims.yaml (W1 W2 W3 W4 W5 · D1 D2 D3 D4 · O1 O2 O3 O4 · T4)
+// and the 2026-10-11 engines audit. Every code caption names a real file:line range that was
+// read against the repo on 2026-10-11. The record is paper; no money figures appear here.
+const builtAt = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+
+const verdicts = [
+  { engine: 'Wager_IQ',       verdict: 'NO EDGE',       when: 'weekly read 2026-10-06' },
+  { engine: 'Day_Edge',       verdict: '0 of 36 cells', when: 'nine-year run 2026-07-03' },
+  { engine: 'Overnight_Edge', verdict: 'OE-11 closed',  when: '2026-07-19' },
+];
+
+// The spine the three engines share (section 05).
+const spine = [
+  { name: 'SENSE',   sub: 'schedules · minute bars · option chains' },
+  { name: 'FREEZE',  sub: 'before the games · before the open · before the data', accent: true },
+  { name: 'OUTCOME', sub: 'the world settles it, never me' },
+  { name: 'GRADE',   sub: 'a second row, never an edit' },
+  { name: 'KEEP',    sub: 'the miss stays up' },
+];
+---
+
+<Workspace
+  title="Forecasting Engines"
+  workspacePath="WORK/FORECASTING-ENGINES.MD"
+  bottomNavFile="work/forecasting-engines.md"
+  description="Three paper forecasting engines (Wager_IQ, Day_Edge, Overnight_Edge) that measured no edge and kept the record: calibrated probabilities, calls frozen before outcomes, graded after, every count dated."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/WORK/FORECASTING-ENGINES.MD
+      </div>
+      <div class="flex flex-wrap items-center gap-4 mb-6">
+        <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight">Forecasting Engines</h1>
+        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest translate-y-[2px]">Paper only</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <TagChip>Python</TagChip>
+        <TagChip>SQLite</TagChip>
+        <TagChip>FastAPI</TagChip>
+        <TagChip>Pydantic v2</TagChip>
+        <TagChip>SQLAlchemy async</TagChip>
+        <TagChip>pytest</TagChip>
+        <TagChip>stdlib statistics</TagChip>
+      </div>
+    </div>
+
+    {/* HERO: THE VERDICT — amber, because the honest answer was no */}
+    <div class="relative bg-[#0c0c0e] border-2 border-amber-500/40 shadow-[0_0_24px_rgba(251,191,36,0.06)] p-6 mb-12">
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/10 pointer-events-none"></div>
+
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-5 font-mono text-[10px] uppercase tracking-widest">
+        <span class="text-zinc-400 font-semibold">The verdict</span>
+        <span class="text-zinc-400">three engines &middot; paper only &middot; measured 2026-07 to 2026-10</span>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-end gap-6 md:gap-8">
+        <div>
+          <div class="text-amber-400 font-tight font-bold text-5xl md:text-6xl tracking-tight leading-none">
+            NO EDGE
+          </div>
+          <div class="mt-3 font-mono text-[14px] text-zinc-300">
+            Measured. Dated. Kept.
+          </div>
+        </div>
+        <div class="md:ml-auto font-mono text-[12px] space-y-1.5">
+          {verdicts.map((v) => (
+            <div class="flex flex-wrap gap-x-3 md:justify-end">
+              <span class="text-zinc-300 w-32 shrink-0">{v.engine}</span>
+              <span class="text-amber-400">{v.verdict}</span>
+              <span class="text-zinc-400">&middot; {v.when}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* METRIC STAT ROW — every value carries its date */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <PhysicalCard title="Wager_IQ tests" value="619" sub="collected 2026-10-11" />
+      <PhysicalCard title="Day_Edge tests" value="130" sub="collected 2026-10-11" />
+      <PhysicalCard title="Overnight_Edge tests" value="228" sub="collected 2026-10-11" />
+      <PhysicalCard title="Nightly decisions graded" value="60 of 66" sub="vault lane · 2026-04-01 to 10-09" />
+    </div>
+
+    {/* SECTION 01: WHY THE NO IS THE PRODUCT */}
+    <SectionHeader num="01" title="Why the NO is the product" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Three Python engines, built to answer one question in three markets: is there a repeatable forecasting edge in scheduled game outcomes, in SPY's intraday moves, or in SPY's overnight moves? Each engine freezes its forecast before the outcome exists, grades it after, and keeps the miss. Each one came back NO.
+      </p>
+      <p>
+        Every record here is paper. The engines decide and grade; none of them executes. The honest product turned out to be the measurement machine, and I kept it paper-only. What follows is the machine, the three NOs with their dates, and the scars that shaped the method.
+      </p>
+    </div>
+
+    {/* SECTION 02: WAGER_IQ */}
+    <SectionHeader num="02" title="Wager_IQ" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        A paper forecasting engine for scheduled game outcomes. It reads five leagues: MLB on a 44-parameter registry, NBA on 18, NFL on 18, WNBA on 15, NCAAF on 20 (repo count, 2026-10-11). Each forecast carries a calibrated probability, and the engine keeps an episodic memory of its own graded days. 619 tests collected 2026-10-11, up from 363 on 2026-08-13.
+      </p>
+      <p>
+        Calibration is walk-forward and leak-free. A forecast dated D is built only from games strictly before D, shrunk toward the league prior at low n, with a shrunk-Wilson lower bound per bucket. Since 2026-08-11 (commit <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">99f3bbd</code>) the live call is gated by one number: a calibrated-probability conviction bar of 0.55, set in <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">config/strategy.yaml:44</code>. The earlier price-gated policy still runs every day as a graded shadow, never live.
+      </p>
+      <p>
+        Each day's call is frozen to a dated record at the morning open, before its games start, and an existing freeze is never rewritten. One stage, since 2026-09-02 (commit <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">224a623</code>).
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <CodeDecision
+        caption="Wager_IQ/strategy/optimizer.py:172-178 — inside single_edge_ok(): the conviction bar"
+        language="python"
+        lines={[172, 173, 174, 175, 176, 177, 178]}
+      >
+        <span>    bar = (<span class="text-emerald-400">getattr</span>(cfg, <span class="text-[#e2cb85]">"conviction_bar"</span>, <span class="text-[#a78bfa]">0.0</span>) <span class="text-rose-400">or</span> <span class="text-[#a78bfa]">0.0</span>) + (bar_bump <span class="text-rose-400">or</span> <span class="text-[#a78bfa]">0.0</span>)</span>
+        <span>    ok = leg.calibrated_prob &gt;= bar</span>
+        <span>    msg = <span class="text-[#e2cb85]">"conviction &#123;0:.3f&#125; vs bar &#123;1:.3f&#125;&#123;2&#125;"</span>.format(</span>
+        <span>        leg.calibrated_prob, bar, <span class="text-[#e2cb85]">" (streak-2 bump)"</span> <span class="text-rose-400">if</span> bar_bump <span class="text-rose-400">else</span> <span class="text-[#e2cb85]">""</span>)</span>
+        <span>    <span class="text-rose-400">if</span> leg.price:</span>
+        <span>        msg += <span class="text-[#e2cb85]">" · EV_lo &#123;0:+.3f&#125; (shown, never gates)"</span>.format(leg.prob_lo * leg.price - <span class="text-[#a78bfa]">1.0</span>)</span>
+        <span>    <span class="text-rose-400">return</span> ok, msg</span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. One comparison decides the day: the calibrated probability against the bar. When a market price exists, the expected value is formatted into the trace for the record and nothing else; the code's own words are "shown, never gates". The decision is about belief in the forecast, never about the price.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        The record says no. 1,141 graded MLB forecasts from 2026-05-01 to 09-15 leaned the right way 49.0% of the time, and on the 477 that could be compared with the market's closing price, they sat behind the close (naive measure, box store 2026-09-16). The weekly read of 2026-10-06 still says NO EDGE for MLB and NCAAF; the other three leagues are marked INSUFFICIENT, with fewer than 30 clean graded cases each. So it stays paper.
+      </p>
+      <p>
+        The operations book ships its own checker. <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">python -m pipelines.book_check</code> recomputes 96 probes against the code, the config and a read-only copy of the store, and exits non-zero on drift. Run on 2026-10-11 against the stale local mirror: 44 match, 50 drift, 2 gone, exit 1. That is the behaviour it exists for. A stale store cannot pass as current.
+      </p>
+      <p>
+        One scar worth telling. The schedule fetch and the finals fetch shared a cache key, so the morning read cached zero finals and the learning half of the engine went dark without a single error. I found it by sweeping tables. The fix was a forced refresh plus a health probe on the quiet half that fails loud when a settled day has no grade (<code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">pipelines/operator.py:1238</code>).
+      </p>
+    </div>
+
+    {/* SECTION 03: DAY_EDGE */}
+    <SectionHeader num="03" title="Day_Edge" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        An intraday study with one question: does any cell of SPY's minute-bar behaviour separate from a coin? The store holds nine years of SPY minute bars. The 2026-07-03 run read 2,261 sessions and 10.13 million labeled outcomes; the store read on 2026-10-11 holds 2,263 sessions and 10.14 million. 130 tests collected 2026-10-11.
+      </p>
+      <p>
+        The verdict engine is a block-aware, purged, embargoed walk-forward calibrator. The unit of resampling is the whole session. Train labels whose horizon overlaps the test span are purged, and the sessions just before a test block are embargoed. Verdicts come from a session-block bootstrap, not from an i.i.d. interval.
+      </p>
+      <p>
+        That choice was earned. On 2026-06-24 a naive Wilson interval confirmed an edge cell; the session-block bootstrap collapsed it. The false positive was autocorrelation, not alpha. Before trusting any NO, the YES path was proven on a synthetic 80% edge, so the detector is known to say yes when there is something to find.
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <CodeDecision
+        caption="Day_Edge/engine/stats.py:87-101 — block_bootstrap_ci(): the effective-N-honest interval"
+        language="python"
+        lines={[87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101]}
+      >
+        <span><span class="text-rose-400">def</span> <span class="text-emerald-400">block_bootstrap_ci</span>(</span>
+        <span>    blocks: Sequence[Sequence[<span class="text-rose-400">int</span>]],</span>
+        <span>    *,</span>
+        <span>    n_boot: <span class="text-rose-400">int</span> = <span class="text-[#a78bfa]">2000</span>,</span>
+        <span>    alpha: <span class="text-rose-400">float</span> = <span class="text-[#a78bfa]">0.05</span>,</span>
+        <span>    seed: <span class="text-rose-400">int</span> = <span class="text-[#a78bfa]">0</span>,</span>
+        <span>) -&gt; Dict[<span class="text-rose-400">str</span>, <span class="text-rose-400">float</span>]:</span>
+        <span>    <span class="text-zinc-400 italic">"""Effective-N-honest CI for a binary rate, resampling whole SESSIONS (blocks).</span></span>
+        <span>&nbsp;</span>
+        <span>    <span class="text-zinc-400 italic">``blocks`` is one inner sequence of 0/1 outcomes per session (the natural dependent</span></span>
+        <span>    <span class="text-zinc-400 italic">unit for intraday first-passage labels). Each bootstrap draw resamples ``len(blocks)``</span></span>
+        <span>    <span class="text-zinc-400 italic">sessions WITH REPLACEMENT, pools their episodes, and recomputes the rate; the CI is the</span></span>
+        <span>    <span class="text-zinc-400 italic">percentile interval of those rates. Because the unit of resampling is the session, the</span></span>
+        <span>    <span class="text-zinc-400 italic">interval widens to reflect the true (small) number of independent units — the i.i.d.</span></span>
+        <span>    <span class="text-zinc-400 italic">Wilson does not. Deterministic given ``seed``.</span></span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. The docstring is the scar in the code's own words: a session is the independent unit, so the interval widens to the true number of independent units, which an i.i.d. Wilson interval does not. Seeded, so a verdict reproduces bit for bit.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        The prediction and its gate thresholds were frozen first. Ledger row <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">05ca43e5</code>, created 2026-07-01 23:56 UTC, says NO before the SPY data was pulled (2026-07-02) and before the nine-year run (2026-07-03) came back: 0 of 36 candidate cells cleared the gate. The NO stood. That is the one tamper-evident kill in the whole stack. I don't claim a second.
+      </p>
+      <p>
+        A second question, Module 2, a same-day options structure, was also killed at its bar on 2026-07-06. That bar is a docstring written in the same sitting as its data, about a minute after the data landed, so I don't call it preregistered. It is a measured kill, not a tamper-evident one. The difference is the point of this page.
+      </p>
+    </div>
+
+    {/* SECTION 04: OVERNIGHT_EDGE */}
+    <SectionHeader num="04" title="Overnight_Edge" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        A nightly decision engine for a one-day SPY options structure (a 1DTE credit spread), in Python: FastAPI, Pydantic v2, SQLAlchemy async. About 15:35 ET it freezes one verdict for the night, skip or act, and at which of two sizes, with the strikes it would use. The verdict is graded against the next morning's open. Verdict and grade go into the append-only ledger as two rows a night (verified for April 2026 in the local copy).
+      </p>
+      <p>
+        The decision is deterministic and ordered. Data quality outranks the hard gates, which outrank eligibility, gap risk, tail risk and the tradeability score, in that order, and a score can never override a gate. The order is checked at runtime: <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">_verify_hierarchy</code> raises on four violations, so an inverted decision crashes the night instead of shipping it.
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <CodeDecision
+        caption="Overnight_Edge/engine/decision/final_decision.py:43-55 — inside _verify_hierarchy()"
+        language="python"
+        lines={[43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]}
+      >
+        <span>    <span class="text-zinc-400 italic">"""Runtime assertion: no score ever overrides a gate.</span></span>
+        <span>&nbsp;</span>
+        <span>    <span class="text-zinc-400 italic">If this fires, there is a logic bug in the decision tree.</span></span>
+        <span>    <span class="text-zinc-400 italic">Data Quality &gt; Hard Gates &gt; Eligibility &gt; Gap Risk &gt; Tail Risk &gt; Tradeability</span></span>
+        <span>    <span class="text-zinc-400 italic">"""</span></span>
+        <span>    <span class="text-rose-400">if</span> hard_gates <span class="text-rose-400">and</span> decision != TradeDecision.SKIP:</span>
+        <span>        <span class="text-rose-400">raise</span> <span class="text-emerald-400">RuntimeError</span>(<span class="text-[#e2cb85]">"HIERARCHY VIOLATION: hard gate triggered but not SKIP"</span>)</span>
+        <span>    <span class="text-rose-400">if</span> gap_risk == GapRiskTier.HIGH <span class="text-rose-400">and</span> decision != TradeDecision.SKIP:</span>
+        <span>        <span class="text-rose-400">raise</span> <span class="text-emerald-400">RuntimeError</span>(<span class="text-[#e2cb85]">"HIERARCHY VIOLATION: gap risk HIGH but not SKIP"</span>)</span>
+        <span>    <span class="text-rose-400">if</span> tail_risk == TailRiskLevel.HIGH <span class="text-rose-400">and</span> decision != TradeDecision.SKIP:</span>
+        <span>        <span class="text-rose-400">raise</span> <span class="text-emerald-400">RuntimeError</span>(<span class="text-[#e2cb85]">"HIERARCHY VIOLATION: tail risk HIGH but not SKIP"</span>)</span>
+        <span>    <span class="text-rose-400">if</span> tail_risk == TailRiskLevel.MODERATE <span class="text-rose-400">and</span> decision == TradeDecision.TRADE:</span>
+        <span>        <span class="text-rose-400">raise</span> <span class="text-emerald-400">RuntimeError</span>(<span class="text-[#e2cb85]">"HIERARCHY VIOLATION: tail risk MODERATE but TRADE (should cap at SMALL)"</span>)</span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. It is a <code class="font-mono text-[12px] text-zinc-300">raise</code>, not an <code class="font-mono text-[12px] text-zinc-300">assert</code>, so it survives an optimized interpreter. It runs on both exits of the decision function.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        The paper record (vault lane, counted 2026-10-11): 66 nightly decisions from 2026-04-01 to 10-09, 60 of them graded at the next open. 33 graded nights were sized SMALL; on 2 of them the short strike was breached at the open, on 2026-08-17 (a 769 put, open 768.70) and on 2026-09-16 (a 760 call, open 763.15). The April 2026 window alone read 21 decisions, 20 graded, 0 breaches. That number is true for April and no later.
+      </p>
+      <p>
+        The edge question closed on 2026-07-19 with OE-11: over 1,010 nights (2022-05 to 2026-07), realized overnight variance exceeded what the market implied by about 27%. A seller of that structure is on the wrong side of the board on average. The engine kept running as a paper observatory.
+      </p>
+      <p>
+        The scar: on 2026-07-06 a vendor suspension blinded the morning bail alert while the health check still said PASS. Health was asserting that processes ran, not that the senses were live. The lesson, now on the failure ladder at rung 2: health must alarm on degraded senses, not only on crashed processes.
+      </p>
+    </div>
+
+    {/* The record, in rows — every row dated */}
+    <div class="bg-[#050505] border border-zinc-800/80 rounded-sm p-4 md:p-5 font-mono text-[12px] md:text-[13px] leading-[1.8] mb-12">
+      <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold mb-2">Overnight_Edge · paper record · vault lane · counted 2026-10-11</div>
+      <div class="flex justify-between gap-4"><span class="text-zinc-400">nightly decisions</span><span class="text-zinc-200 text-right">66 &middot; 2026-04-01 to 10-09</span></div>
+      <div class="flex justify-between gap-4"><span class="text-zinc-400">graded at the next open</span><span class="text-zinc-200 text-right">60</span></div>
+      <div class="flex justify-between gap-4"><span class="text-zinc-400">graded nights sized SMALL</span><span class="text-zinc-200 text-right">33</span></div>
+      <div class="flex justify-between gap-4"><span class="text-zinc-400">short strike breached at the open</span><span class="text-amber-400 text-right">2 &middot; 2026-08-17, 2026-09-16</span></div>
+      <div class="flex justify-between gap-4"><span class="text-zinc-400">April 2026 alone</span><span class="text-zinc-200 text-right">21 decisions &middot; 20 graded &middot; 0 breaches</span></div>
+    </div>
+
+    {/* SECTION 05: WHAT THE THREE SHARE */}
+    <SectionHeader num="05" title="What the three share" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-6">
+      One spine, three instruments. The freeze lands in an append-only ledger before the outcome can exist. The grade is a second row. Nothing is edited after the fact, and the misses are the part that makes the hits believable.
+    </p>
+
+    <div class="w-full bg-[#050505] border border-zinc-800/80 rounded-sm p-5 md:p-6 mb-4">
+      <div class="flex flex-col md:flex-row md:items-stretch gap-3">
+        {spine.map((s, i) => (
+          <Fragment>
+            <div class={`flex-1 border p-3 flex flex-col gap-1.5 ${s.accent ? 'border-emerald-500/70' : 'border-zinc-600'}`}>
+              <div class={`font-hand text-[21px] leading-none ${s.accent ? 'text-emerald-400' : 'text-zinc-200'}`}>{s.name}</div>
+              <div class="font-mono text-[10px] md:text-[11px] text-zinc-400 leading-snug">{s.sub}</div>
+            </div>
+            {i < spine.length - 1 && (
+              <div class="flex items-center justify-center text-zinc-500 font-mono text-[16px] select-none" aria-hidden="true">
+                <span class="hidden md:inline">&rarr;</span><span class="md:hidden">&darr;</span>
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
+    </div>
+    <div class="text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic mb-8">
+      The ledger behind the freezes is The_Ledger: two INSERT-only tables and nine write-time fences, 63 tests collected 2026-10-11. How it works, what broke inside it, and the one kill are on the method page.
+    </div>
+
+    <div class="flex flex-col gap-3 mb-16">
+      <PointerButton href="/honest-machine" label="~/WORKSPACE/WORK/HONEST-MACHINE.MD" desc="the method: freeze, grade, keep the miss" />
+    </div>
+
+    {/* FOOTER — paper-only, source private */}
+    <div class="border-t border-zinc-800/80 pt-12 pb-24 flex flex-col items-center text-center">
+      <div class="bg-[#0a0a0c] text-zinc-400 border border-zinc-800 px-8 py-3 uppercase font-mono font-bold tracking-widest text-[13px] mb-4 select-none">
+        Paper-only research engines &middot; Source private
+      </div>
+      <div class="text-zinc-400 font-mono text-[11px] uppercase tracking-widest max-w-md">
+        Walk-through on request &middot; <a href="mailto:cjdavis766@gmail.com?subject=forecasting%20engines%20walk-through" class="text-zinc-300 hover:text-emerald-400 normal-case tracking-normal">cjdavis766@gmail.com</a>
+      </div>
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated counts only; nothing live is claimed */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="grid grid-cols-2 gap-2.5">
+        <PhysicalCard title="Wager_IQ" value="619" sub="tests · 2026-10-11" />
+        <PhysicalCard title="Day_Edge" value="130" sub="tests · 2026-10-11" />
+        <PhysicalCard title="Overnight_Edge" value="228" sub="tests · 2026-10-11" />
+        <PhysicalCard title="Leagues read" value="5" sub="Wager_IQ · repo 2026-10-11" />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3 flex items-center justify-between">
+          <span>The record</span>
+          <span class="bg-zinc-800 text-zinc-300 px-1 py-0.5 rounded-sm">dated</span>
+        </div>
+        <div class="font-mono text-[10px] bg-[#050505] border border-zinc-800/60 rounded-sm p-3">
+          <div class="space-y-2 text-zinc-400">
+            <div class="flex justify-between gap-2">
+              <span>WIQ graded MLB</span>
+              <span class="text-zinc-200 text-right">1,141 &middot; to 09-15</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>WIQ verdict</span>
+              <span class="text-amber-400 text-right">NO EDGE &middot; 10-06</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>DE outcomes</span>
+              <span class="text-zinc-200 text-right">10.13M &middot; 07-03 run</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>DE cells cleared</span>
+              <span class="text-amber-400 text-right">0 of 36 &middot; 07-03</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>OE graded</span>
+              <span class="text-zinc-200 text-right">60 of 66 &middot; to 10-09</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>OE edge question</span>
+              <span class="text-amber-400 text-right">closed &middot; 07-19</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>Tamper-evident kills</span>
+              <span class="text-emerald-400 text-right">1 &middot; frozen 07-01</span>
+            </div>
+          </div>
+        </div>
+        <div class="font-mono text-[10px] text-zinc-400 mt-2 leading-snug">
+          all dates 2026 &middot; counts as of 2026-10-11 &middot; page built {builtAt}
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

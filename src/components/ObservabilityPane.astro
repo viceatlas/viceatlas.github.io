@@ -1,0 +1,85 @@
+---
+/**
+ * Right sidebar — per-page observability panel.
+ * Mirrors the structural pattern of ProjectExplorer (matching widths, borders,
+ * pane-scroll utility) so the two side panes balance visually.
+ *
+ * Pages fill it via the default slot. When a page supplies nothing
+ * (`showDefault` is set by Workspace.astro from `Astro.slots.has('observability')`),
+ * the pane renders the default content: only facts that are verifiable at
+ * build time, each with its fetch time or its date.
+ *
+ *   BUILD <utc stamp>                       computed here
+ *   viceatlas /api/health <STATUS>          fetched at build (src/lib/live.ts)
+ *   GitHub public repos · newest push       fetched at build, dated fallback
+ *   self-grading-demo 18 tests · 2026-10-11 dated literal (tests/test_demo.py, counted on disk)
+ *   SHIPPING since 2020                     his sentence (claim T1), never a count of years
+ */
+import PhysicalCard from './PhysicalCard.astro';
+import { health, github, utcStamp } from '../lib/live';
+
+interface Props {
+  /** True when the page supplied no observability slot; render the default facts. */
+  showDefault?: boolean;
+}
+const { showDefault = false } = Astro.props;
+
+const buildStamp = utcStamp();
+const live = showDefault ? { h: await health(), g: await github() } : null;
+---
+
+<aside
+  class="hidden lg:flex flex-col w-[280px] border-l border-zinc-800/60 bg-[#09090b] shrink-0 pane-scroll"
+  aria-label="Observability"
+>
+  <div
+    class="px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-widest font-sans border-b border-zinc-800/40"
+  >
+    Observability
+  </div>
+  <div class="px-4 py-4">
+    <slot />
+    {live && (
+      <div class="flex flex-col gap-5">
+        <div class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+          BUILD <span class="text-emerald-500/90">{buildStamp}</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+          <PhysicalCard
+            title="viceatlas /api/health"
+            value={live.h.status}
+            sub={`fetched ${live.h.fetchedAt}`}
+            success={live.h.healthy}
+            alert={live.h.unreachable}
+          />
+          <PhysicalCard
+            title="GitHub public repos"
+            value={String(live.g.publicRepos)}
+            sub={
+              live.g.live
+                ? `newest push ${live.g.newestPush}`
+                : `newest push ${live.g.newestPush} · as of ${live.g.fetchedAt}`
+            }
+          />
+          <PhysicalCard
+            title="self-grading-demo"
+            value="18 tests"
+            sub="counted 2026-10-11 · no API key"
+          />
+        </div>
+
+        <div class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+          SHIPPING <span class="text-emerald-500/90">since 2020</span>
+        </div>
+
+        <p class="font-mono text-[10px] leading-relaxed text-zinc-400">
+          {live.g.live
+            ? 'Health and GitHub were fetched at build time; the BUILD stamp is the fetch time.'
+            : 'Health was fetched at build time; the GitHub numbers are literals from 2026-10-11 because the API did not answer.'}
+          {' '}The page rebuilds on push, so the stamp says how old this is.
+        </p>
+      </div>
+    )}
+  </div>
+</aside>

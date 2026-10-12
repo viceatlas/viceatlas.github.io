@@ -1,0 +1,26 @@
+---
+/**
+ * Large tabular number + label below. Used in metric rows on project pages.
+ * Wrap in PhysicalCard if you want the hardware framed look.
+ */
+interface Props {
+  value: string | number;
+  label: string;
+  accent?: 'fg' | 'emerald' | 'rose';
+}
+const { value, label, accent = 'fg' } = Astro.props;
+const valueClass = {
+  fg: 'text-(--color-fg)',
+  emerald: 'text-(--color-emerald)',
+  rose: 'text-(--color-rose)',
+}[accent];
+---
+
+<div class="flex flex-col gap-1.5 px-4 py-4">
+  <div class={`font-display text-[36px] font-semibold tabular-nums leading-none ${valueClass}`}>
+    {value}
+  </div>
+  <div class="font-mono text-[10px] uppercase tracking-[0.1em] text-(--color-fg-faint)">
+    {label}
+  </div>
+</div>

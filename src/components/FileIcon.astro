@@ -1,0 +1,31 @@
+---
+/**
+ * Tiny file-type letter badge for the Project Explorer tree.
+ * Mimics VS Code's file-icon column without pulling a real icon font.
+ *
+ * Glyphs and colors are muted — they identify the file type by shape
+ * and tint without competing with the page's emerald/rose accent system.
+ *
+ * Usage:
+ *   <FileIcon ext="md" />
+ *   <FileIcon ext="json" />
+ */
+interface Props {
+  ext: 'md' | 'json' | 'ts' | 'py' | 'plain';
+}
+const { ext } = Astro.props;
+
+const icons = {
+  md:    { glyph: 'M',  color: 'text-sky-400/60' },
+  json:  { glyph: '{}', color: 'text-amber-400/60' },
+  ts:    { glyph: 'TS', color: 'text-blue-400/60' },
+  py:    { glyph: 'py', color: 'text-emerald-400/60' },
+  plain: { glyph: '·',  color: 'text-zinc-700' },
+} as const;
+
+const { glyph, color } = icons[ext];
+---
+
+<span class={`inline-block w-4 text-center font-mono text-[11px] font-bold leading-none shrink-0 ${color}`}>
+  {glyph}
+</span>

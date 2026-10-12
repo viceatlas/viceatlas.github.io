@@ -1,0 +1,447 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+import TagChip from '../components/TagChip.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CodeDecision from '../components/CodeDecision.astro';
+import PointerButton from '../components/PointerButton.astro';
+
+// The seven stages, named from packages/domain/src/enums.ts:15-23 (read 2026-10-11).
+// `llm` marks the four that call the model: scripts/cost.ts:4 LLM_STEPS.
+const steps = [
+  { name: 'PLAN',       llm: true,  does: 'search queries' },
+  { name: 'SEARCH',     llm: false, does: 'web search' },
+  { name: 'FETCH',      llm: false, does: 'HTTP' },
+  { name: 'EXTRACT',    llm: false, does: 'deterministic' },
+  { name: 'SYNTHESIZE', llm: true,  does: 'brief + claims' },
+  { name: 'VERIFY',     llm: true,  does: 'the judge' },
+  { name: 'PACKAGE',    llm: true,  does: 'notes + call' },
+];
+
+// Every official run since the host rebuild. Read from the vault's Market Days lane on
+// 2026-10-11: each note's "## Verification Summary" line. All six carry tags [market-day, v10].
+const productionRuns = [
+  { date: '2026-08-14', supported: 15, total: 16, confidence: '0.76' },
+  { date: '2026-08-26', supported: 14, total: 14, confidence: '0.82' },
+  { date: '2026-09-03', supported: 13, total: 14, confidence: '0.80' },
+  { date: '2026-09-11', supported: 14, total: 15, confidence: '0.83' },
+  { date: '2026-10-01', supported: 12, total: 12, confidence: '0.86' },
+  { date: '2026-10-08', supported: 13, total: 13, confidence: '0.75' },
+];
+const supportedTotal = productionRuns.reduce((n, r) => n + r.supported, 0); // 81
+const claimsTotal = productionRuns.reduce((n, r) => n + r.total, 0);        // 84
+
+// Dated facts only. Each line carries the date it was read or the receipt that dates it.
+const timeline = [
+  { when: '2026-07',    what: 'deployed to a 24/7 VPS cron' },
+  { when: '2026-08',    what: 'host replaced' },
+  { when: '2026-08-14', what: 'record restarted: first vault note on the new host' },
+  { when: '2026-09-16', what: 'PACKAGE-stage silence placed on the failure ledger (rung 2, open)' },
+  { when: '2026-10-08', what: 'last finished run (vault, read 2026-10-11)' },
+];
+
+const receipts = [
+  'packages/domain/src/enums.ts:15-23',
+  'apps/worker/src/steps/verify.ts:54-90',
+  'packages/domain/src/types.ts:277-283',
+  'scripts/lib/prompt-calibration.ts:33-133',
+  'scripts/today.ts:255-261',
+  'packages/integrations/src/llm.ts:177-208',
+];
+---
+
+<Workspace
+  title="Clawdbot · Ladon Davis"
+  workspacePath="WORK/CLAWDBOT.MD"
+  bottomNavFile="work/clawdbot.md"
+  description="Clawdbot: a 7-stage LLM research pipeline on the Anthropic SDK with an adversarial judge, a versioned prompt rubric and a prompt-version gate. 81 of 84 claims judged supported across six production runs, 2026-08-14 to 2026-10-08."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/WORK/CLAWDBOT.MD
+      </div>
+      <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight mb-6">
+        Clawdbot
+      </h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="bg-zinc-800/50 text-zinc-300 border border-zinc-700/50 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">VPS cron &middot; since July 2026 &middot; source private</span>
+        <TagChip>TypeScript</TagChip>
+        <TagChip>pnpm + Turborepo</TagChip>
+        <TagChip>Fastify 5</TagChip>
+        <TagChip>BullMQ 5</TagChip>
+        <TagChip>Prisma 7 · Postgres</TagChip>
+        <TagChip>Anthropic SDK</TagChip>
+        <TagChip>vitest</TagChip>
+      </div>
+    </div>
+
+    {/* HERO: THE RECORD — every number here was read from the vault's Market Days lane on 2026-10-11 */}
+    <div class="relative bg-[#0c0c0e] border-2 border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.06)] p-6 mb-12">
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/10 pointer-events-none"></div>
+
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-5 font-mono text-[10px] uppercase tracking-widest">
+        <span class="text-zinc-500 font-semibold">The judge's record</span>
+        <span class="text-zinc-400">six production runs &middot; 2026-08-14 to 2026-10-08 &middot; tallied 2026-10-11</span>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-end gap-5 md:gap-8 mb-6">
+        <div>
+          <div class="text-emerald-400 font-tight font-bold text-4xl md:text-5xl tracking-tight leading-none">
+            {supportedTotal} / {claimsTotal}
+          </div>
+          <div class="mt-3 font-mono text-[14px] text-zinc-300">
+            claims judged supported against their fetched evidence &middot; prompt rubric v10
+          </div>
+        </div>
+        <div class="md:ml-auto md:text-right">
+          <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1.5">
+            Mean judge confidence
+          </div>
+          <div class="font-mono text-[16px] text-zinc-200">0.80</div>
+          <div class="font-mono text-[12px] text-zinc-400 mt-1">96.4% &middot; Wilson 95% 90.0&ndash;98.8%</div>
+          <div class="font-mono text-[12px] text-zinc-400 mt-1">not yet validated against human labels</div>
+        </div>
+      </div>
+
+      {/* 7-step row — the names are the enum; emerald marks the four stages that call the model */}
+      <div class="grid grid-cols-4 md:grid-cols-7 gap-1.5">
+        {steps.map((step) => (
+          <div class={`flex flex-col items-center gap-1 px-1 py-2 rounded-sm border ${step.llm ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-zinc-900/40 border-zinc-800/80'}`}>
+            <span class={`font-mono text-[9px] uppercase tracking-wider ${step.llm ? 'text-emerald-400' : 'text-zinc-400'}`}>{step.llm ? 'LLM' : 'code'}</span>
+            <span class="text-zinc-200 font-mono text-[10px] uppercase tracking-wider truncate w-full text-center">{step.name}</span>
+            <span class="text-zinc-400 font-mono text-[9px] truncate w-full text-center">{step.does}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* METRIC STAT ROW — each value carries its date or method */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <PhysicalCard title="Tests" value="411 cases" sub="static count 2026-10-11" />
+      <PhysicalCard title="Prompt rubric" value="v10" sub="stamped on every note" />
+      <PhysicalCard title="Calibration gate" value="exit 1" sub="wired · 0 runs blocked" />
+      <PhysicalCard title="Tokens / run" value="~40k" sub="39,363 on 2026-07-01" />
+    </div>
+
+    {/* SECTION 01: WHAT IT DOES */}
+    <SectionHeader num="01" title="What it does" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Clawdbot is a scheduled research pipeline. Given the day's question, it plans search queries, fetches the sources, extracts the text, writes a brief made of claims tied to the evidence they came from, and then puts every claim in front of a second model call whose only job is to attack it. The output lands in an Obsidian vault as two notes, the Market Day brief and a Prediction, and in six Discord channels.
+      </p>
+      <p>
+        Four of the seven stages call the model (PLAN, SYNTHESIZE, VERIFY, PACKAGE). It is custom orchestration on the Anthropic SDK: streamed calls with adaptive thinking, a strict JSON contract spelled out in the prompt, and a parser that throws with the raw text when the contract isn't met. No agent framework.
+      </p>
+      <p>
+        The thing I'd point at first is the judge, and the two mechanisms around it: a prompt rubric that is versioned in code and stamped on every run, and a gate that refuses to let a new prompt version run if its first graded calls fall short of the last version's.
+      </p>
+    </div>
+
+    {/* SECTION 02: ARCHITECTURE */}
+    <SectionHeader num="02" title="Architecture" />
+    <div class="mb-12">
+      <div class="w-full overflow-x-auto bg-[#050505] border border-zinc-800/80 rounded-sm p-6 relative select-none">
+        <svg class="w-full min-w-[700px] h-[320px]" viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Seven pipeline stages in order: PLAN, SEARCH, FETCH, EXTRACT, SYNTHESIZE, VERIFY, PACKAGE. PLAN, SYNTHESIZE, VERIFY and PACKAGE call the model. An Overnight Edge risk note from the vault feeds PLAN. PACKAGE writes vault notes and Discord posts.">
+          <defs>
+            <filter id="cb-rough">
+              <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <marker id="cb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="none" stroke="#a1a1aa" stroke-width="1.5" filter="url(#cb-rough)" />
+            </marker>
+          </defs>
+
+          <g filter="url(#cb-rough)" fill="none" stroke-width="2">
+            {/* Top row: PLAN (model) → SEARCH → FETCH → EXTRACT */}
+            <rect x="20" y="80" width="90" height="50" stroke="#10b981" />
+            <rect x="150" y="80" width="90" height="50" stroke="#71717a" />
+            <rect x="280" y="80" width="90" height="50" stroke="#71717a" />
+            <rect x="410" y="80" width="90" height="50" stroke="#71717a" />
+
+            {/* Bottom row: SYNTHESIZE (model) → VERIFY (model) → PACKAGE (model) */}
+            <rect x="410" y="200" width="90" height="50" stroke="#10b981" />
+            <rect x="540" y="200" width="90" height="50" stroke="#10b981" />
+            <rect x="670" y="200" width="90" height="50" stroke="#10b981" />
+
+            {/* Forward context: Overnight Edge's nightly risk note, read from the vault before PLAN */}
+            <rect x="10" y="10" width="160" height="40" stroke="#71717a" stroke-dasharray="4 4" />
+            <path d="M 65 50 L 65 72" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+
+            {/* Arrows, top row */}
+            <path d="M 110 105 L 140 105" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+            <path d="M 240 105 L 270 105" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+            <path d="M 370 105 L 400 105" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+
+            {/* Drop to the bottom row */}
+            <path d="M 455 130 C 455 160, 455 170, 455 190" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+
+            {/* Arrows, bottom row */}
+            <path d="M 500 225 L 530 225" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+            <path d="M 630 225 L 660 225" stroke="#a1a1aa" marker-end="url(#cb-arrow)" />
+          </g>
+
+          {/* Stage names — the enum members, in PIPELINE_STEPS order */}
+          <g class="font-hand text-[20px] fill-zinc-300" text-anchor="middle">
+            <text x="65" y="112" class="fill-emerald-400">PLAN</text>
+            <text x="195" y="112">SEARCH</text>
+            <text x="325" y="112">FETCH</text>
+            <text x="455" y="112">EXTRACT</text>
+            <text x="455" y="232" class="fill-emerald-400">SYNTHESIZE</text>
+            <text x="585" y="232" class="fill-emerald-400">VERIFY</text>
+            <text x="715" y="232" class="fill-emerald-400">PACKAGE</text>
+          </g>
+
+          <g class="font-hand fill-zinc-400" text-anchor="middle">
+            <text x="90" y="37" class="text-[16px]">OE risk note (vault)</text>
+            <text x="585" y="278" class="text-[15px]">the judge</text>
+          </g>
+          <g class="font-mono text-[12px] fill-zinc-400" text-anchor="middle">
+            <text x="715" y="278">vault notes + Discord</text>
+          </g>
+
+          {/* Annotation */}
+          <g class="font-hand text-[16px] fill-emerald-400/80">
+            <text x="150" y="190" transform="rotate(-3 150 190)">emerald = the four stages that call the model</text>
+          </g>
+        </svg>
+      </div>
+      <div class="mt-4 text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic">
+        Seven stages, named from packages/domain/src/enums.ts:15-23 and dispatched one file per stage (apps/worker/src/steps/). One Postgres row per step per run: prisma/schema.prisma:70, @@unique([runId, name]). Before PLAN, the driver reads <a href="/forecasting-engines" class="text-emerald-400 hover:text-emerald-300 no-underline border-b border-emerald-400/30 hover:border-emerald-400/60 not-italic">Overnight Edge</a>'s nightly risk note from the vault and falls back to yesterday's if today's isn't there yet (scripts/today.ts:268-290). PACKAGE writes the Market Day and Prediction notes (apps/worker/src/steps/package.ts:572-576) with the prompt version in their tags (:441, :474). All file:line references on this page were read on 2026-10-11.
+      </div>
+    </div>
+
+    {/* SECTION 03: THE JUDGE */}
+    <SectionHeader num="03" title="The judge" />
+    <div class="space-y-5 text-[15px] leading-relaxed text-zinc-300 font-sans mb-6">
+      <p>
+        VERIFY is a second call to the model with an adversarial brief. Each claim arrives paired with the evidence text it was derived from, the source URL and any citation quotes (verify.ts:92-121). The judge grades against that and nothing else. The excerpt below is the system prompt; the gutter shows the file's own line numbers.
+      </p>
+    </div>
+    <div class="mb-12">
+      <CodeDecision
+        caption="apps/worker/src/steps/verify.ts:54-78 — the VERIFY system prompt (excerpt)"
+        language="typescript"
+        lines={[54, 56, 57, 58, 68, 69, 74, 77]}
+      >
+        <span><span class="text-rose-400">function</span> <span class="text-emerald-400">buildSystemPrompt</span>(): <span class="text-rose-400">string</span> {'{'}</span>
+        <span>    <span class="text-[#e2cb85]">"You are a rigorous, adversarial fact-checking analyst.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"You receive claims paired with the evidence they were derived from.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"Your job is to critically evaluate whether each claim is genuinely supported, not merely restated.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"- Evaluate each claim strictly against the provided evidence only.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"- Do not use external knowledge or infer facts not present in the evidence.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"- If the claim makes a quantitative statement (e.g. 'fell 2%'), verify the exact number appears in the evidence.",</span></span>
+        <span>    <span class="text-[#e2cb85]">"- If a claim is a direct restatement of its evidence in different words with no analytical value added, confidence should not exceed 0.75.",</span></span>
+        <Fragment slot="description">
+          Two more rules live in the same prompt: a claim contradicted by evidence elsewhere in the batch loses confidence (lines 80-83), and the scores must use the whole range (85-88). Then code checks the judge. If every confidence is above 0.85, or the spread across claims is narrower than 0.10 for 3-5 claims or 0.15 for 6 or more, the step throws the verdicts away and retries, up to three attempts (verify.ts:295-311). A judge that approves everything at 0.9 is treated as broken, not as good news.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="packages/domain/src/types.ts:277-283 — the rubric is a versioned prompt"
+        language="typescript"
+        lines={[277, 281, 282, 283]}
+      >
+        <span><span class="text-zinc-500 italic">// v10: LLM backend gpt-4.1 → claude-opus-4-8 (adaptive thinking, effort=high, streamed).</span></span>
+        <span><span class="text-zinc-500 italic">//      old 0.20 guard). The calibration gate holds v10 to v9's last-N baseline — the switch</span></span>
+        <span><span class="text-zinc-500 italic">//      grades itself and self-flags a regression. See docs/OPUS_MIGRATION_PLAN.md.</span></span>
+        <span><span class="text-rose-400">export const</span> CURRENT_PROMPT_VERSION = <span class="text-[#a78bfa]">10</span>;</span>
+        <Fragment slot="description">
+          Any prompt change bumps the version; the changelog from v2 to v10 sits in the comment above it (types.ts:264-282). The version is written to Postgres per run (ResearchRun.promptVersion, migration 20260330212955_add_prompt_version) and into the tags of every vault note (package.ts:441, :474), so a graded outcome can always be traced to the exact prompt that produced it. There is no separate rubric file in this repo. The public <a href="/self-grading-demo" class="text-emerald-400 hover:text-emerald-300 no-underline border-b border-emerald-400/30 hover:border-emerald-400/60">self-grading-demo</a> is where the rubric is a hashed file; here it is code under version control with a version constant.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="packages/integrations/src/llm.ts:177-192 — one call shape, fail loud"
+        language="typescript"
+        lines={[177, 179, 180, 181, 186, 189, 192]}
+      >
+        <span>  <span class="text-rose-400">const</span> stream = <span class="text-rose-400">new</span> <span class="text-emerald-400">Anthropic</span>({'{'} apiKey {'}'}).messages.<span class="text-emerald-400">stream</span>({'{'}</span>
+        <span>    max_tokens: <span class="text-[#a78bfa]">32000</span>, <span class="text-zinc-500 italic">// ceiling (thinking + output share it); adaptive spends only what it needs</span></span>
+        <span>    thinking: {'{'} type: <span class="text-[#e2cb85]">"adaptive"</span> {'}'}, <span class="text-zinc-500 italic">// budget_tokens would 400 on Opus 4.8</span></span>
+        <span>    output_config: {'{'} effort {'}'},</span>
+        <span>  <span class="text-rose-400">const</span> message = <span class="text-rose-400">await</span> stream.<span class="text-emerald-400">finalMessage</span>();</span>
+        <span>  <span class="text-rose-400">if</span> (message.stop_reason === <span class="text-[#e2cb85]">"refusal"</span>) {'{'}</span>
+        <span>  <span class="text-rose-400">if</span> (message.stop_reason === <span class="text-[#e2cb85]">"max_tokens"</span>) {'{'}</span>
+        <Fragment slot="description">
+          Streaming is for the SDK's timeout ceiling, not for a typing effect: a non-streaming call at this max_tokens is refused up front, so the reply is streamed and reassembled with finalMessage() (the comment at llm.ts:174-176 says so). A refusal throws, a truncated reply throws, an empty reply throws (llm.ts:189-201). The JSON is then parsed by apps/worker/src/llm-response.ts, which tolerates one fenced block and otherwise throws with the first 500 characters of the raw text (:31-34). Each step validates its own fields after that (verify.ts:123 onward). Usage comes back with every call (llm.ts:205-208).
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 04: THE GATE — said exactly as the record allows */}
+    <SectionHeader num="04" title="The prompt-version gate" />
+    <div class="space-y-5 text-[15px] leading-relaxed text-zinc-300 font-sans mb-6">
+      <p>
+        A prompt edit is a deploy. The rule: the first 10 scored predictions of a new prompt version must match or beat the last 10 of the prior version, measured as the share of directional calls that resolved correctly (wins over wins plus losses; neutrals excluded). The window is the first 10, not a trailing 10, so once it fills the verdict is locked and a later loss can't flip it (prompt-calibration.ts:7-9).
+      </p>
+    </div>
+    <div class="mb-6">
+      <CodeDecision
+        caption="scripts/lib/prompt-calibration.ts:33-37 — the gate is a pure function"
+        language="typescript"
+        lines={[33, 34, 35, 36, 37]}
+      >
+        <span><span class="text-rose-400">export function</span> <span class="text-emerald-400">evaluateCalibrationGate</span>(</span>
+        <span>  scored: VersionedPrediction[],</span>
+        <span>  currentVersion: <span class="text-rose-400">number</span>,</span>
+        <span>  windowSize = <span class="text-[#a78bfa]">10</span>,</span>
+        <span>): GateResult {'{'}</span>
+        <Fragment slot="description">
+          No I/O in the gate: it takes the scored predictions grouped by prompt version and returns one of pass, regression, watch (fewer than 10 scored yet) or no-prior-version, with the reason spelled out (prompt-calibration.ts:33-133). 14 tests in scripts/prompt-calibration.test.ts.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="scripts/today.ts:255-261 — wired to exit 1 in the run driver"
+        language="typescript"
+        lines={[255, 256, 257, 260, 261]}
+      >
+        <span>  <span class="text-rose-400">const</span> gate = <span class="text-emerald-400">evaluateCalibrationGate</span>(versioned, CURRENT_PROMPT_VERSION, <span class="text-[#a78bfa]">10</span>);</span>
+        <span>  <span class="text-rose-400">for</span> (<span class="text-rose-400">const</span> line <span class="text-rose-400">of</span> <span class="text-emerald-400">formatGateOutput</span>(gate)) console.log(line);</span>
+        <span>  <span class="text-rose-400">if</span> (gate.status === <span class="text-[#e2cb85]">"regression"</span> &amp;&amp; !acceptRegression) {'{'}</span>
+        <span>    <span class="text-rose-400">await</span> <span class="text-emerald-400">cleanup</span>(prisma, pipelineQueue);</span>
+        <span>    process.<span class="text-emerald-400">exit</span>(<span class="text-[#a78bfa]">1</span>);</span>
+        <Fragment slot="description">
+          On regression the driver cleans up and exits 1 unless it was run with --accept-regression. The honest status on 2026-10-11: the gate exists and is wired to exit 1; it has not yet blocked a run. v10 has 5 decided predictions in the vault, short of the 10 it needs, so the gate has not yet evaluated the current version. "CI for prompts" is a metaphor; this is a run-time gate in the run driver.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 05: THE RECORD — the real table, from the vault, replacing the April mock */}
+    <SectionHeader num="05" title="The record" />
+    <p class="text-[15px] leading-relaxed text-zinc-300 font-sans mb-6">
+      Every official run since the host rebuild, read from the vault's <span class="font-mono text-[13px] text-zinc-100">Market Days</span> lane on 2026-10-11. Each row is the note's own Verification Summary line; all six carry the tag <span class="font-mono text-[13px] text-zinc-100">v10</span>.
+    </p>
+    <div class="bg-[#050505] border border-zinc-800/80 rounded-sm mb-6 p-1 overflow-x-auto shadow-sm">
+      <div class="min-w-[520px] text-[12px] font-mono text-zinc-400">
+        <div class="grid grid-cols-12 px-3 py-2 border-b border-zinc-800 text-zinc-400 font-semibold text-[11px] uppercase tracking-wider bg-zinc-900/30">
+          <div class="col-span-3">Run date</div>
+          <div class="col-span-3">Claims supported</div>
+          <div class="col-span-3">Mean confidence</div>
+          <div class="col-span-3 text-right">Prompt</div>
+        </div>
+        {productionRuns.map((row) => (
+          <div class="grid grid-cols-12 px-3 py-2 border-b border-zinc-800/40">
+            <div class="col-span-3 tabular-nums text-zinc-300">{row.date}</div>
+            <div class={`col-span-3 tabular-nums font-bold ${row.supported === row.total ? 'text-emerald-400' : 'text-amber-400'}`}>{row.supported} / {row.total}</div>
+            <div class="col-span-3 tabular-nums text-zinc-300">{row.confidence}</div>
+            <div class="col-span-3 text-right text-zinc-400">v10</div>
+          </div>
+        ))}
+        <div class="grid grid-cols-12 px-3 py-2 text-zinc-300 bg-zinc-900/30">
+          <div class="col-span-3 font-semibold">Six runs</div>
+          <div class="col-span-3 tabular-nums font-bold text-emerald-400">{supportedTotal} / {claimsTotal}</div>
+          <div class="col-span-3 tabular-nums">0.80</div>
+          <div class="col-span-3 text-right text-zinc-400">96.4%</div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-4 text-[15px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Three things the table does not say on its own. <span class="text-zinc-100">One:</span> these are judge verdicts, not human labels. Nobody has graded the judge yet. <span class="text-zinc-100">Two:</span> the all-eras tally is lower. Counting the 25 local runs from 2026-03-25 to 2026-05-01, on an earlier backend and prompt versions up to v9, the record is 205 of 232 (88.4%, Wilson 95% 83.6&ndash;91.9%). <span class="text-zinc-100">Three:</span> six finished runs is six out of 41 trading days since the 2026-08-13 repair. The PACKAGE stage fails soft and no instrument yet asserts the lane's weekday cadence; I placed that on the node's failure ledger on 2026-09-16 (rung 2, silent) and it is still open. A pipeline that reports its own gaps is the point of the design, but a gap is still a gap.
+      </p>
+    </div>
+
+    {/* SECTION 06: TOKENS */}
+    <SectionHeader num="06" title="Tokens, metered per step" />
+    <div class="space-y-4 text-[15px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Every model call returns its usage (llm.ts:205-208). SYNTHESIZE, VERIFY and PACKAGE store it in their step output, which Prisma persists as PipelineStep.output in Postgres (synthesize.ts:433, verify.ts:345, package.ts:620); PLAN logs its usage to the console only. Dollars are never stored: scripts/cost.ts prices the stored tokens at read time and prints the total, the month and the average per run (:93-102).
+      </p>
+      <p>
+        About 40,000 tokens a run (39,363 on the 2026-07-01 dry run). No dollar figure here on purpose: the only cost range on record is a July 2026 estimate written before the first run, never a measurement.
+      </p>
+    </div>
+
+    {/* SECTION 07: ONE FIX WORTH TELLING — the fix and why; the incident itself is written nowhere in the repo */}
+    <SectionHeader num="07" title="One fix worth telling" />
+    <div class="mb-12">
+      <CodeDecision
+        caption="packages/domain/package.json:6-11 — the shared packages are consumed from source"
+        language="json"
+        lines={[6, 7, 8, 9, 10, 11]}
+      >
+        <span>  <span class="text-[#e2cb85]">"exports"</span>: {'{'}</span>
+        <span>    <span class="text-[#e2cb85]">"."</span>: <span class="text-[#e2cb85]">"./src/index.ts"</span></span>
+        <span>  {'}'},</span>
+        <span>  <span class="text-[#e2cb85]">"scripts"</span>: {'{'}</span>
+        <span>    <span class="text-[#e2cb85]">"typecheck"</span>: <span class="text-[#e2cb85]">"tsc --noEmit"</span>,</span>
+        <span>    <span class="text-[#e2cb85]">"build"</span>: <span class="text-[#e2cb85]">"echo 'JIT package — no build needed'"</span>,</span>
+        <Fragment slot="description">
+          The domain and integrations packages have no build step: the workspace resolves them to their TypeScript source and tsx runs it (packages/integrations/package.json:11 says the same). The reason is a class of bug, not a preference. A compiled copy of a package can fall behind its source and nothing in the test suite notices, because the tests import the copy. Removing the compile step removes the class. It is also why the test count on this page is a static count that excludes compiled copies under dist/: counted through the copies, the number comes out higher and double-counted.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 08: WHERE IT RUNS */}
+    <SectionHeader num="08" title="Where it runs, what it writes" />
+    <div class="space-y-4 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-16">
+      <p>
+        Deployed to a 24/7 VPS cron in July 2026. The host was replaced in August 2026 and the record restarted on 2026-08-14, which is why the table above starts there and not in July. Scheduled runs from a weekday cron; the driver is one command, <span class="font-mono text-[14px] text-zinc-100">pnpm today</span>.
+      </p>
+      <p>
+        Outputs: an Obsidian vault with four lanes written by this node (Market Days, Predictions, My Takes, Weeks) and six Discord channels (the evidence, the synthesis with its verified claims, the call, the scored outcomes, the weekly review, and an ops channel that speaks only when a run breaks; scripts/lib/discord.ts:19-25). Discord delivery is fail-soft on purpose: a dead webhook never fails a run.
+      </p>
+    </div>
+
+    {/* FOOTER — the source is private; no placeholder link */}
+    <div class="border-t border-zinc-800/80 pt-12 pb-24 flex flex-col items-center text-center">
+      <div class="bg-[#0a0a0c] text-zinc-300 border border-zinc-700 px-8 py-3 uppercase font-mono font-bold tracking-widest text-[13px] mb-4 select-none">
+        Source private &middot; walk-through on request
+      </div>
+      <div class="text-zinc-400 font-mono text-[11px] uppercase tracking-widest mb-8">
+        Built solo &middot; <a href="mailto:cjdavis766@gmail.com?subject=clawdbot%20walk-through" class="text-zinc-300 hover:text-emerald-400 normal-case tracking-normal">cjdavis766@gmail.com</a>
+      </div>
+      <div class="grid gap-2 w-full max-w-xl text-left">
+        <PointerButton href="/self-grading-demo" label="~/WORKSPACE/WORK/SELF-GRADING-DEMO.MD" desc="the public version of the judge · no API key" />
+        <PointerButton href="/" label="~/WORKSPACE/RESUME/ABOUT.MD" desc="home" />
+      </div>
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated facts only */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">as read on 2026-10-11</div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <PhysicalCard title="Judge record" value="81 / 84" sub="6 runs · v10" success />
+        <PhysicalCard title="Tests" value="411" sub="25 vitest files" />
+        <PhysicalCard title="Prompt" value="v10" sub="in code + notes" />
+        <PhysicalCard title="Gate" value="exit 1" sub="0 runs blocked" />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3 flex items-center justify-between">
+          <span>Timeline</span>
+          <span class="bg-zinc-800 text-zinc-400 px-1 py-0.5 rounded-sm">dated</span>
+        </div>
+        <div class="font-mono text-[10px] bg-[#050505] border border-zinc-800/60 rounded-sm p-3">
+          <div class="space-y-2.5 text-zinc-400">
+            {timeline.map((t) => (
+              <div class="flex gap-2">
+                <span class="text-zinc-300 shrink-0 tabular-nums w-[66px]">{t.when}</span>
+                <span>{t.what}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3">Receipts (file:line)</div>
+        <div class="flex flex-col gap-2 font-mono text-[10px] text-zinc-400 break-all">
+          {receipts.map((r) => <div>{r}</div>)}
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

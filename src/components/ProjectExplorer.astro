@@ -1,0 +1,184 @@
+---
+import FileIcon from './FileIcon.astro';
+/**
+ * Project Explorer file tree — VS Code-faithful version.
+ *
+ *   - SVG chevrons that rotate via CSS on [open] (no character swaps, no JS)
+ *   - 1px vertical indent guide lines per folder, drawn from CSS --depth
+ *   - File-type letter icons (M / {} / ·), hidden from the accessible name
+ *
+ * Tree (every row is a real link; there are no decoy rows):
+ *   portfolio/
+ *     resume/
+ *       about.md               → /
+ *       experience.json        → /experience-json
+ *       resume.pdf             → /resume.pdf
+ *     work/
+ *       self-grading-demo.md   → /self-grading-demo
+ *       viceatlas.com          → https://www.viceatlas.com   (external)
+ *       honest-machine.md      → /honest-machine
+ *       clawdbot.md            → /clawdbot
+ *       role-scout.md          → /role-scout
+ *       forecasting-engines.md → /forecasting-engines
+ *     clients/
+ *       index.md               → /clients
+ *
+ * Two variants:
+ *   aside  (default) — the lg+ left pane, with its "Project Explorer" header.
+ *   inline           — just the <nav> tree, for the phone <details> block in
+ *                      Workspace.astro below lg.
+ *
+ * Active highlight: bg-zinc-800/50 + text-zinc-100 + border-l zinc-500.
+ */
+interface Props {
+  variant?: 'aside' | 'inline';
+}
+const { variant = 'aside' } = Astro.props;
+
+type Ext = 'md' | 'json' | 'ts' | 'py' | 'plain';
+interface Leaf {
+  label: string;
+  href: string;
+  ext: Ext;
+  external?: boolean;
+}
+interface Folder {
+  name: string;
+  leaves: Leaf[];
+}
+
+const tree: Folder[] = [
+  {
+    name: 'resume',
+    leaves: [
+      { label: 'about.md', href: '/', ext: 'md' },
+      { label: 'experience.json', href: '/experience-json', ext: 'json' },
+      { label: 'resume.pdf', href: '/resume.pdf', ext: 'plain' },
+    ],
+  },
+  {
+    name: 'work',
+    leaves: [
+      { label: 'self-grading-demo.md', href: '/self-grading-demo', ext: 'md' },
+      { label: 'viceatlas.com', href: 'https://www.viceatlas.com', ext: 'plain', external: true },
+      { label: 'honest-machine.md', href: '/honest-machine', ext: 'md' },
+      { label: 'clawdbot.md', href: '/clawdbot', ext: 'md' },
+      { label: 'role-scout.md', href: '/role-scout', ext: 'md' },
+      { label: 'forecasting-engines.md', href: '/forecasting-engines', ext: 'md' },
+    ],
+  },
+  {
+    name: 'clients',
+    leaves: [{ label: 'index.md', href: '/clients', ext: 'md' }],
+  },
+];
+
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (leaf: Leaf) => !leaf.external && leaf.href === pathname;
+
+const linkClass = (active: boolean) =>
+  `flex items-center gap-2 text-[14px] py-[3px] px-2 select-none font-mono tracking-tight no-underline ` +
+  (active
+    ? 'bg-zinc-800/50 text-zinc-100 border-l border-zinc-500'
+    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/20 border-l border-transparent');
+
+const folderClass =
+  `flex items-center gap-2 text-[14px] py-[3px] px-2 cursor-pointer select-none font-mono tracking-tight text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/20 border-l border-transparent`;
+
+const filePad = (depth: number) => `padding-left: ${depth * 12 + 8}px`;
+
+const navId = variant === 'inline' ? 'explorer-inline' : 'explorer-aside';
+---
+
+{variant === 'aside' ? (
+  <aside
+    class="hidden lg:flex flex-col w-[285px] border-r border-zinc-800/60 bg-[#09090b] shrink-0 pane-scroll"
+  >
+    <div
+      class="px-4 py-3 text-[12px] font-bold text-zinc-400 uppercase tracking-widest font-sans border-b border-zinc-800/40"
+    >
+      Project Explorer
+    </div>
+    <nav id={navId} aria-label="Project explorer" class="py-2">
+      <details open class="explorer-folder" style="--depth: 0">
+        <summary class={folderClass} style={filePad(0)}>
+          <svg class="folder-chevron text-zinc-500" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="font-semibold text-zinc-300">portfolio</span>
+        </summary>
+
+        {tree.map((folder) => (
+          <details open class="explorer-folder" style="--depth: 1">
+            <summary class={folderClass} style={filePad(1)}>
+              <svg class="folder-chevron text-zinc-500" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="font-semibold text-zinc-300">{folder.name}</span>
+            </summary>
+            {folder.leaves.map((leaf) => (
+              <a
+                href={leaf.href}
+                class={linkClass(isActive(leaf))}
+                style={filePad(2)}
+                aria-current={isActive(leaf) ? 'page' : undefined}
+                target={leaf.external ? '_blank' : undefined}
+                rel={leaf.external ? 'noopener noreferrer' : undefined}
+              >
+                <span aria-hidden="true" class="flex shrink-0"><FileIcon ext={leaf.ext} /></span>
+                <span>{leaf.label}</span>
+                {leaf.external && (
+                  <>
+                    <span aria-hidden="true" class="ml-auto text-zinc-500 text-[12px]">↗</span>
+                    <span class="sr-only">(opens in a new tab)</span>
+                  </>
+                )}
+              </a>
+            ))}
+          </details>
+        ))}
+      </details>
+    </nav>
+  </aside>
+) : (
+  <nav id={navId} aria-label="Project explorer" class="py-1">
+    <details open class="explorer-folder" style="--depth: 0">
+      <summary class={folderClass} style={filePad(0)}>
+        <svg class="folder-chevron text-zinc-500" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="font-semibold text-zinc-300">portfolio</span>
+      </summary>
+
+      {tree.map((folder) => (
+        <details open class="explorer-folder" style="--depth: 1">
+          <summary class={folderClass} style={filePad(1)}>
+            <svg class="folder-chevron text-zinc-500" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="font-semibold text-zinc-300">{folder.name}</span>
+          </summary>
+          {folder.leaves.map((leaf) => (
+            <a
+              href={leaf.href}
+              class={linkClass(isActive(leaf))}
+              style={filePad(2)}
+              aria-current={isActive(leaf) ? 'page' : undefined}
+              target={leaf.external ? '_blank' : undefined}
+              rel={leaf.external ? 'noopener noreferrer' : undefined}
+            >
+              <span aria-hidden="true" class="flex shrink-0"><FileIcon ext={leaf.ext} /></span>
+              <span>{leaf.label}</span>
+              {leaf.external && (
+                <>
+                  <span aria-hidden="true" class="ml-auto text-zinc-500 text-[12px]">↗</span>
+                  <span class="sr-only">(opens in a new tab)</span>
+                </>
+              )}
+            </a>
+          ))}
+        </details>
+      ))}
+    </details>
+  </nav>
+)}

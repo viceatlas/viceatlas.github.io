@@ -1,0 +1,50 @@
+# Builds the site and publishes it to GitHub Pages (https://viceatlas.github.io).
+#
+# Three triggers: a push to main, a manual run, and a daily rebuild at 11:17 UTC
+# so anything fetched at build time (the viceatlas.com /api/health status word and
+# its fetch time) is never more than a day old.
+#
+# Action names and versions checked against
+# https://docs.astro.build/en/guides/deploy/github/ on 2026-10-11:
+# actions/checkout@v7, withastro/action@v6 (node-version defaults to 24),
+# actions/deploy-pages@v5, environment github-pages.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a scheduled run never cancels a push-triggered one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install, build, and upload the site
+        uses: withastro/action@v6
+        with:
+          node-version: "24"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

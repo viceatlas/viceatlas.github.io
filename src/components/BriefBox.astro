@@ -1,0 +1,49 @@
+---
+/**
+ * Grounded-brief card: file:line + confidence pill + pattern_name + explanation.
+ * Unused since the 2026-10-11 rewrite; kept for a page that cites code by line.
+ */
+interface Props {
+  filePath: string;
+  lineNumber: number;
+  confidence: number;
+  patternName: string;
+  githubUrl?: string | null;
+}
+const { filePath, lineNumber, confidence, patternName, githubUrl } = Astro.props;
+const confStr = confidence.toFixed(2);
+---
+
+<div
+  class="physical-edge my-3 rounded-md border-l-[3px] border-l-(--color-emerald) border border-(--color-border) bg-(--color-bg-elev) px-5 py-4"
+>
+  <div class="mb-1 flex items-center justify-between gap-3 font-mono text-[12px]">
+    {
+      githubUrl ? (
+        <a
+          href={githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-(--color-fg-muted) hover:text-(--color-emerald)"
+        >
+          file:{filePath}:{lineNumber}
+        </a>
+      ) : (
+        <span class="text-(--color-fg-muted)">
+          file:{filePath}:{lineNumber}
+        </span>
+      )
+    }
+    <span
+      class="rounded-sm bg-(--color-confidence-soft) px-2 py-0.5 text-[11px] uppercase tracking-[0.05em] text-(--color-confidence)"
+    >
+      CONF {confStr}
+    </span>
+  </div>
+  <div class="font-display text-[15px] font-semibold text-(--color-fg)">
+    {patternName}
+  </div>
+  <div class="mt-1 text-[14px] leading-[1.55] text-(--color-fg-muted)">
+    <slot />
+  </div>
+</div>

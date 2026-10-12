@@ -1,0 +1,436 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+import TagChip from '../components/TagChip.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CodeDecision from '../components/CodeDecision.astro';
+import PointerButton from '../components/PointerButton.astro';
+
+// Truth rules for this page: every number carries its date or its method in the same
+// sentence. Sources: Job_Hunt/fleet/claims.yaml (S1 S2 S3 · L1 L2 L3 · D1 D2 D3 · K1 · G1 · E2),
+// THE_HONEST_MACHINE.md (the seven organs, named 2026-09-06), The_Ledger/FAILURE_LADDER.md
+// (frozen 2026-09-01) and the 2026-10-11 ledger audit. Every code caption names a real
+// file:line range read against the repo on 2026-10-11. The_Ledger's source is private.
+const builtAt = new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+
+// The core move (section 01).
+const flow = [
+  { name: 'CLAIM',   sub: 'one dated sentence · what will settle it · settle-by' },
+  { name: 'FREEZE',  sub: 'a frozen_reads row · created_at · signals · narrative', accent: true },
+  { name: 'OUTCOME', sub: 'the world settles it, never me' },
+  { name: 'GRADE',   sub: 'a resolutions row · never an edit · a void needs a reason' },
+  { name: 'RECORD',  sub: 'hits over hits plus misses · the misses stay up' },
+];
+
+// The seven organs, each with its one law (THE_HONEST_MACHINE.md).
+const organs = [
+  {
+    n: '1', name: 'The constitution',
+    what: 'Rules are written as law with the dated incident that earned each one. A rule is amended only by a ruling grounded in graded evidence, and an overruled rule keeps running as a graded shadow, so the ruling itself gets graded.',
+    law: 'No new law without a receipt.',
+    where: 'the book of the whole: nine laws, a drift checker, a decision queue',
+  },
+  {
+    n: '2', name: 'The verifier',
+    what: 'Before any claim ships, a separate process with no shared memory tries to refute it, and its verdict is logged beside the claim.',
+    law: 'The thing that makes the claim never grades the claim.',
+    where: 'the public instance: github.com/viceatlas/self-grading-demo',
+  },
+  {
+    n: '3', name: 'Preregistration',
+    what: 'Every experiment freezes its success and kill conditions before it runs. The detector is proven both ways: it must say NO on a null world and YES on a planted effect.',
+    law: 'Write the bar before the data, and prove the bar can fire. The miss posts too.',
+    where: 'section 05 below',
+  },
+  {
+    n: '4', name: 'The failure ladder',
+    what: 'Failures climb from simple to deep. Each one is placed on the ladder before it is fixed; the rung names what must already be true for the fix to hold.',
+    law: 'Place it before you fix it. Every guard ships with its drill.',
+    where: 'section 07 below',
+  },
+  {
+    n: '5', name: 'The reflect spine',
+    what: 'Every stream the machine produces lands where something downstream reads it back, or it is not produced. An output with no named reader is dormant at birth.',
+    law: 'Name the reader at ship time, or don\'t ship the stream.',
+  },
+  {
+    n: '6', name: 'The record',
+    what: 'A dated, self-graded record: public where there is an audience, in fenced ledgers where there isn\'t one yet. The graded ledger is immutable and kept apart from the narrative.',
+    law: 'Written before the answer, graded after, every one dated. The misses stay up.',
+    where: 'sections 03 and 04 below',
+  },
+  {
+    n: '7', name: 'The operator as mouth',
+    what: 'The human does only what cannot be delegated. Everything else is built to run unattended with a heartbeat, and the human\'s own latency is graded like any other calibration.',
+    law: 'Never price the operator\'s action as hope.',
+    where: 'section 06 below',
+  },
+];
+
+// The computation axis of The_Ledger/FAILURE_LADDER.md (frozen 2026-09-01), rungs 0 to 10.
+const rungs = [
+  { n: '0',  name: 'WRONG',              test: 'does each piece do what it claims?' },
+  { n: '1',  name: 'DORMANT',            test: 'built and tested; does the loop actually call it daily?' },
+  { n: '2',  name: 'SILENT',             test: 'runs, fails quietly; is absence loud? would a crash page you?', placed: 'Overnight_Edge, 2026-07-06: the morning bail alert dark behind a PASS health check' },
+  { n: '3',  name: 'MISTIMED',           test: 'right code, wrong moment; does any phase run before its input exists?' },
+  { n: '4',  name: 'DIFFERENT WORLD',    test: 'same code: same internet, same PATH, same limits? has the plan visited the world it builds for?' },
+  { n: '5',  name: 'DIVERGENT',          test: 'two parts computing one decision; one engine per decision, every consumer on the one seam?' },
+  { n: '6',  name: 'BORROWED YARDSTICK', test: 'what threshold was tuned on one world and silently pools when a second arrives?' },
+  { n: '7',  name: 'LYING FRAME',        test: 'honest data, dishonest surface; is the number earned? is the record\'s timeline real?', placed: 'The_Ledger, 2026-07-02: a backfill stamped with the current time' },
+  { n: '8',  name: 'DOCTRINE DRIFT',     test: 'correct and honest, serving the wrong master; re-read the founding intent' },
+  { n: '9',  name: 'MIS-ATTRIBUTION',    test: 'the system learns the wrong lesson; does the feedback loop credit cause, or just outcome?' },
+  { n: '10', name: 'THE GUARD FAILS',    test: 'the catcher itself is broken; has the safety mechanism ever been fired?', placed: 'The_Ledger, 2026-07-02: the cleanup needed raw SQL because no void existed, an absent repair lane' },
+];
+---
+
+<Workspace
+  title="The Honest Machine"
+  workspacePath="WORK/HONEST-MACHINE.MD"
+  bottomNavFile="work/honest-machine.md"
+  description="The method behind the systems: predictions frozen before outcomes exist, an append-only ledger with nine write-time fences, one tamper-evident kill, failures placed on a ladder before they are fixed, the operator graded as a component."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/WORK/HONEST-MACHINE.MD
+      </div>
+      <div class="flex flex-wrap items-center gap-4 mb-6">
+        <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight">The Honest Machine</h1>
+        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest translate-y-[2px]">Method</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <TagChip>Python</TagChip>
+        <TagChip>SQLite</TagChip>
+        <TagChip>append-only</TagChip>
+        <TagChip>write-time fences</TagChip>
+        <TagChip>preregistration</TagChip>
+        <TagChip>pytest</TagChip>
+      </div>
+    </div>
+
+    {/* HERO: THE ONE SENTENCE, WITH THE MECHANISM IN THE SAME BREATH */}
+    <div class="relative bg-[#0c0c0e] border-2 border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.06)] p-6 mb-12">
+      <div class="absolute top-0 left-0 right-0 h-[1px] bg-white/10 pointer-events-none"></div>
+
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-5 font-mono text-[10px] uppercase tracking-widest">
+        <span class="text-zinc-400 font-semibold">The method</span>
+        <span class="text-zinc-400">named 2026-09-06 &middot; source private &middot; walk-through on request</span>
+      </div>
+
+      <div class="text-zinc-100 font-tight font-bold text-3xl md:text-4xl tracking-tight leading-tight mb-4">
+        The apparatus of proof is the asset.
+      </div>
+      <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans max-w-2xl">
+        Calls frozen before outcomes exist. Kill bars written first and honored. Failures placed on a ladder before they are fixed. The operator graded as a component. Whether or not the forecasts underneath had an edge (they didn't), the machine that proves it is the part that transfers.
+      </p>
+
+      <div class="flex flex-wrap justify-between gap-2 mt-6 pt-4 border-t border-zinc-800/80 font-mono text-[11px]">
+        <span class="text-zinc-400">public instance &rarr; <a href="https://github.com/viceatlas/self-grading-demo" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300">github.com/viceatlas/self-grading-demo<span class="sr-only"> (opens in a new tab)</span></a></span>
+        <span class="text-zinc-400">one tamper-evident kill &middot; bar frozen 2026-07-01 23:56 UTC</span>
+      </div>
+    </div>
+
+    {/* METRIC STAT ROW — every value carries its date */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <PhysicalCard title="Ledger tables" value="2" sub="INSERT-only · frozen_reads, resolutions" />
+      <PhysicalCard title="Write-time fences" value="9" sub="7 at birth · 2 after 2026-07-02" />
+      <PhysicalCard title="Ledger tests" value="63" sub="collected 2026-10-11 · 36 on the writer" />
+      <PhysicalCard title="Tamper-evident kills" value="1" sub="row 05ca43e5 · 2026-07-01" success />
+    </div>
+
+    {/* SECTION 01: THE MOVE */}
+    <SectionHeader num="01" title="The move" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-6">
+      <p>
+        Everything descends from one move, borrowed from science and pointed at everything: write the claim before you know the answer, grade it after, and keep the verdict whether it hit or missed. A forecaster does this with predictions. The method does it with the code, the public voice, the failures, and the operator's own actions. The wish to believe your own work is better than it is does not survive a dated record.
+      </p>
+    </div>
+
+    <div class="w-full bg-[#050505] border border-zinc-800/80 rounded-sm p-5 md:p-6 mb-4">
+      <div class="flex flex-col md:flex-row md:items-stretch gap-3">
+        {flow.map((s, i) => (
+          <Fragment>
+            <div class={`flex-1 border p-3 flex flex-col gap-1.5 ${s.accent ? 'border-emerald-500/70' : 'border-zinc-600'}`}>
+              <div class={`font-hand text-[21px] leading-none ${s.accent ? 'text-emerald-400' : 'text-zinc-200'}`}>{s.name}</div>
+              <div class="font-mono text-[10px] md:text-[11px] text-zinc-400 leading-snug">{s.sub}</div>
+            </div>
+            {i < flow.length - 1 && (
+              <div class="flex items-center justify-center text-zinc-500 font-mono text-[16px] select-none" aria-hidden="true">
+                <span class="hidden md:inline">&rarr;</span><span class="md:hidden">&darr;</span>
+              </div>
+            )}
+          </Fragment>
+        ))}
+      </div>
+    </div>
+    <div class="text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic mb-12">
+      A row nothing but me can settle is not a claim. The settler is a scoreboard, a closing price, a public number. The grade is a second row, appended, never an edit, and a void carries a reason and stays in the tally.
+    </div>
+
+    {/* SECTION 02: THE SEVEN ORGANS */}
+    <SectionHeader num="02" title="The seven organs" />
+    <p class="text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      Each organ answers a different way one person can fool himself. Each ships with one law. The sections that follow are the receipts.
+    </p>
+    <div class="space-y-6 mb-16">
+      {organs.map((o) => (
+        <div class="flex flex-col gap-1.5">
+          <div class="font-mono text-[12px] md:text-[13px] text-zinc-200">
+            <span class="text-emerald-400/80">[{o.n}]</span> {o.name}
+          </div>
+          <div class="font-sans text-[14px] md:text-[15px] text-zinc-400 pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5 space-y-1.5">
+            <p>{o.what}</p>
+            <p class="text-zinc-300"><span class="font-mono text-[11px] uppercase tracking-widest text-emerald-400/80 mr-2">law</span>{o.law}</p>
+            {o.where && (
+              <p class="font-mono text-[11px] text-zinc-400"><span class="uppercase tracking-widest mr-2">receipt</span>{o.where}</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* SECTION 03: THE LEDGER */}
+    <SectionHeader num="03" title="The ledger" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        The_Ledger is where the freezes live: SQLite, two INSERT-only tables, <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">frozen_reads</code> and <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">resolutions</code>. A frozen read is a point-in-time prediction with a stated confidence, the signals that fired, and a narrative a human can read. A resolution is its grade. Corrections are new rows. A view, <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">live_frozen_reads</code>, hides voided rows; the writer never emits an UPDATE or a DELETE.
+      </p>
+      <p>
+        The writer enforces nine fences at write time: seven from the first version, two added after the incident in section 04. A hard refusal raises and writes nothing; the one soft fence, the confidence downgrade, is logged. 63 tests collected 2026-10-11, 36 of them on the writer (36 of 36 runner-verified 2026-08-13).
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <CodeDecision
+        caption="The_Ledger/kernel/writer.py:130-143 — the freeze() docstring: the original seven fences"
+        language="python"
+        lines={[130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143]}
+      >
+        <span>    <span class="text-zinc-400 italic">Fences enforced:</span></span>
+        <span>      <span class="text-zinc-400 italic">1. project must be in _VALID_PROJECTS</span></span>
+        <span>      <span class="text-zinc-400 italic">2. computed_confidence must be in _VALID_CONFIDENCES</span></span>
+        <span>      <span class="text-zinc-400 italic">3. signals must be a non-empty dict (glass-box discipline)</span></span>
+        <span>      <span class="text-zinc-400 italic">4. narrative must be a non-empty stripped string</span></span>
+        <span>      <span class="text-zinc-400 italic">5. deposit_key must be non-empty (idempotency discipline)</span></span>
+        <span>      <span class="text-zinc-400 italic">6. If (project, kind, deposit_key, node) already has a row, refuse</span></span>
+        <span>         <span class="text-zinc-400 italic">(one engine per decision)</span></span>
+        <span>      <span class="text-zinc-400 italic">7. If computed_confidence in ('high', 'medium') and the graded n for</span></span>
+        <span>         <span class="text-zinc-400 italic">(project, kind) is &lt; n_threshold, DOWNGRADE to 'provisional' and</span></span>
+        <span>         <span class="text-zinc-400 italic">log the downgrade. A DowngradedError warning is emitted.</span></span>
+        <span>&nbsp;</span>
+        <span>    <span class="text-zinc-400 italic">Raises:</span></span>
+        <span>      <span class="text-zinc-400 italic">LedgerError — on any hard fence violation. No row is written.</span></span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. Fence 7 is the one that keeps a young stream humble: a high confidence on a kind with fewer than the threshold of graded rows is written as provisional and the downgrade is logged. Fences 8 and 9, the kind registry and the backfill rule, sit lower in the same function and are the subject of the next section.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        The design is that every system deposits its forecast before the outcome exists and is graded after. Not every stream is live at once: on the copy I could read on 2026-10-11, one stream (Wager_IQ) deposits daily, and the other projects' rows carry their own dates. The honest present tense is "the ledger is written to daily", not "everything deposits".
+      </p>
+    </div>
+
+    {/* SECTION 04: THE INCIDENT */}
+    <SectionHeader num="04" title="The incident, told straight" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        On 2026-07-02 an AI-written backfill import stamped 20 historical rows with the current time, under two kinds it invented. No fence refused it; none existed for that class yet. A review pass caught it on a count mismatch, and I had to delete it from a backup with raw SQL around my own write path. That is why the ledger now has a tombstone function, a registered-kinds fence, a backfill rule that makes a historical timestamp self-identify, and two audits that fail on that exact signature.
+      </p>
+      <p>
+        The one tombstone in the database today (local copy, read 2026-10-11) is a different catch. On 2026-07-06 a deposit encoded its probability upside down, 0.10 where the convention meant 0.90. It was voided in-doctrine 73 minutes later and re-frozen under a v2 key. The fences were built after the forgery, and they have never fired on a real one. In tests they fail on its reconstruction; that is the exact claim, and no more.
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <CodeDecision
+        caption="The_Ledger/kernel/writer.py:542-557 — void_deposit(): the tombstone the cleanup didn't have"
+        language="python"
+        lines={[542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557]}
+      >
+        <span><span class="text-rose-400">def</span> <span class="text-emerald-400">void_deposit</span>(</span>
+        <span>    *,</span>
+        <span>    frozen_read_id: <span class="text-rose-400">str</span>,</span>
+        <span>    reason: <span class="text-rose-400">str</span>,</span>
+        <span>    voided_by: <span class="text-rose-400">str</span>,</span>
+        <span>    db_path: Optional[Path | <span class="text-rose-400">str</span>] = <span class="text-rose-400">None</span>,</span>
+        <span>) -&gt; <span class="text-rose-400">str</span>:</span>
+        <span>    <span class="text-zinc-400 italic">"""Void a frozen read — remove CORRUPTION from the live ledger in-doctrine.</span></span>
+        <span>&nbsp;</span>
+        <span>    <span class="text-zinc-400 italic">A botched import (forged timeline, wrong kind, duplicate) is corruption, not</span></span>
+        <span>    <span class="text-zinc-400 italic">history. It must be removed — but NEVER by raw DELETE around the kernel (which</span></span>
+        <span>    <span class="text-zinc-400 italic">is what the 2026-07-02 forgery cleanup was forced to do, before this existed).</span></span>
+        <span>    <span class="text-zinc-400 italic">This inserts a tombstone into ``voids`` instead of deleting the row: the base</span></span>
+        <span>    <span class="text-zinc-400 italic">``frozen_reads`` table stays append-only and complete for the audit trail, while</span></span>
+        <span>    <span class="text-zinc-400 italic">every reader (calibration, stack, freshness, the audits — all via</span></span>
+        <span>    <span class="text-zinc-400 italic">``live_frozen_reads``) treats the read as GONE.</span></span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. A void is an INSERT into a third table; the original row stays for the audit trail and every reader drops it through the view. The docstring says in its own words what the cleanup on 2026-07-02 had to do without it.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="The_Ledger/kernel/writer.py:180-191 — the kind-registry fence, added after the incident"
+        language="python"
+        lines={[180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191]}
+      >
+        <span>    <span class="text-zinc-400 italic"># Kind-registry fence (DEPOSIT_SPEC §3, made executable in kernel/kinds.py).</span></span>
+        <span>    <span class="text-zinc-400 italic"># A kind is a stable QUESTION; it must be registered before its first freeze.</span></span>
+        <span>    <span class="text-zinc-400 italic"># This is the fence that would have refused the 2026-07-02 forgery, whose</span></span>
+        <span>    <span class="text-zinc-400 italic"># first-draft import invented unregistered 'skip_decision'/'trade_decision'</span></span>
+        <span>    <span class="text-zinc-400 italic"># kinds and double-deposited the same nights.</span></span>
+        <span>    <span class="text-rose-400">if not</span> <span class="text-emerald-400">is_registered</span>(project, kind):</span>
+        <span>        <span class="text-rose-400">raise</span> <span class="text-emerald-400">LedgerError</span>(</span>
+        <span>            <span class="text-[#e2cb85]">f"kind=&#123;kind!r&#125; is not registered for project=&#123;project!r&#125;. "</span></span>
+        <span>            <span class="text-[#e2cb85]">"Register it in kernel/kinds.py (and DEPOSIT_SPEC §3) BEFORE its first "</span></span>
+        <span>            <span class="text-[#e2cb85]">"freeze. One kind per stable question — no ad-hoc kind names "</span></span>
+        <span>            <span class="text-[#e2cb85]">"(they shatter the calibration series and let duplicates slip past dedup)."</span></span>
+        <span>        )</span>
+        <Fragment slot="description">
+          Real source, read 2026-10-11. The tense in the comment is the honest one: "would have refused". Two audits now reconstruct the incident in a temporary database, seeding the forged signature with raw SQL the way a botched import would, and assert that both audits fail and that a void clears it (<code class="font-mono text-[12px] text-zinc-300">kernel/tests/test_audit.py</code>).
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 05: THE ONE KILL */}
+    <SectionHeader num="05" title="The one tamper-evident kill" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Day_Edge asked whether any cell of SPY's minute-bar behaviour separates from a coin. The prediction (NO) and its gate thresholds were frozen as ledger row <code class="font-mono text-[12px] bg-zinc-800/50 border border-zinc-700/50 px-1.5 py-0.5 rounded-sm">05ca43e5</code> at 2026-07-01 23:56 UTC, before the SPY data was pulled on 2026-07-02 and before the nine-year run on 2026-07-03 came back with 0 of 36 cells clearing the gate. The NO stood. That is the one kill in the stack where the bar is provably older than the data.
+      </p>
+      <p>
+        The honest fence around it: the row freezes the prediction and the thresholds; the full text of the question's YES condition sat in a document that could have been edited. And a second kill the same week, the Module 2 bar, was written about a minute after its data landed, so I don't call it preregistered. One tamper-evident kill, said once. The engines and their dated records are on their own page.
+      </p>
+    </div>
+
+    {/* SECTION 06: THE OPERATOR AS A COMPONENT */}
+    <SectionHeader num="06" title="The operator as a component" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        I run seven-plus systems on one VPS and one Windows machine under a book of the whole with nine laws, a drift checker and a decision queue. When measurement showed four programs claiming one daily slot, the fix was one slot-owner per era and builds fenced to windows. The operator is a component in that book, and he is graded like one.
+      </p>
+      <p>
+        On 2026-09-20 I pointed my own forecaster at myself. On the world it did fine. On my own actions it priced me at six percent: 0 of 15 forecasts about what I would do came true. The number went into the record like any other miss, and the pricing rule now reads the realized rate instead of the wish.
+      </p>
+      <p>
+        On the public prediction board at <a href="https://www.viceatlas.com" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300 no-underline border-b border-emerald-400/30 hover:border-emerald-400/60">viceatlas.com<span class="sr-only"> (opens in a new tab)</span></a>, a database constraint refuses to record a call of mine after the question locks (written September 7, applied in production by October 11, 2026). The freeze is not a habit there. It is a constraint.
+      </p>
+    </div>
+
+    {/* SECTION 07: THE FAILURE LADDER */}
+    <SectionHeader num="07" title="The failure ladder" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-8">
+      <p>
+        Frozen 2026-09-01: every failure class the stack has met, simple to deep. Each rung only becomes visible after the one below it is fixed, which is why ideas arrive when they do. A new failure is placed on the ladder before it is fixed; the rung names what must already be true for the fix to hold. Rungs 0 to 7 live in code and are caught by instruments. Rungs 8 to 10 live in meaning and in people.
+      </p>
+    </div>
+
+    <div class="bg-[#050505] border border-zinc-800/80 rounded-sm mb-6 p-1 shadow-sm">
+      <div class="text-[12px] font-mono text-zinc-400">
+        <div class="grid grid-cols-12 px-3 py-2 border-b border-zinc-800 text-zinc-400 font-semibold text-[11px] uppercase tracking-wider bg-zinc-900/30">
+          <div class="col-span-1">Lvl</div>
+          <div class="col-span-3">Class</div>
+          <div class="col-span-8">The one-line test</div>
+        </div>
+        {rungs.map((r, i) => (
+          <div class={`px-3 py-2.5 border-b border-zinc-800/40 hover:bg-zinc-800/30 transition-colors ${i === rungs.length - 1 ? 'border-b-0' : ''}`}>
+            <div class="grid grid-cols-12 gap-x-2">
+              <div class="col-span-1 tabular-nums text-zinc-400">{r.n}</div>
+              <div class="col-span-3 text-zinc-200 font-bold pr-2">{r.name}</div>
+              <div class="col-span-8 text-zinc-400 font-sans text-[13px] leading-snug">{r.test}</div>
+            </div>
+            {r.placed && (
+              <div class="grid grid-cols-12 gap-x-2 mt-1.5">
+                <div class="col-span-1"></div>
+                <div class="col-span-11 text-[11px] text-amber-400/90 leading-snug"><span class="uppercase tracking-widest mr-2">placed here</span>{r.placed}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic mb-12">
+      A second axis, P1 to P5, covers what the system has rather than what it does: a secret that crossed its boundary, a supply that drained without a gauge, state with the wrong copy-count, a copy of your surface held wrong by someone else, and the operator's own action spent as the test harness for an artifact that shipped unrun.
+    </div>
+
+    {/* SECTION 08: THE LIMITS */}
+    <SectionHeader num="08" title="The limits, applied to itself" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        It is hindsight by construction. No organ sees a failure whose discovery is its first occurrence; the method makes the second instance cheap, and the first is always paid in full. Measurement can outgrow the product, and a machine that spends more on self-knowledge than on its work is a museum with good lighting. It cannot manufacture witnesses: a self-graded record performs to an empty room until distribution arrives. And it cannot act for the operator; the largest number in the record is often his own zero, and the method's only power over it is to refuse to lie about it.
+      </p>
+      <p>
+        Nobody outside my own head has reviewed this code yet. That is why I am applying to a team.
+      </p>
+    </div>
+
+    {/* POINTERS */}
+    <div class="flex flex-col gap-3 mb-16">
+      <PointerButton href="https://github.com/viceatlas/self-grading-demo" label="github.com/viceatlas/self-grading-demo" desc="the public instance · no API key · 18 tests, counted on disk 2026-10-11" external />
+      <PointerButton href="/forecasting-engines" label="~/WORKSPACE/WORK/FORECASTING-ENGINES.MD" desc="the three engines and their dated NOs" />
+    </div>
+
+    {/* FOOTER — source private */}
+    <div class="border-t border-zinc-800/80 pt-12 pb-24 flex flex-col items-center text-center">
+      <div class="bg-[#0a0a0c] text-zinc-400 border border-zinc-800 px-8 py-3 uppercase font-mono font-bold tracking-widest text-[13px] mb-4 select-none">
+        The_Ledger &middot; Source private &middot; Walk-through on request
+      </div>
+      <div class="text-zinc-400 font-mono text-[11px] uppercase tracking-widest max-w-md">
+        <a href="mailto:cjdavis766@gmail.com?subject=the%20ledger%20walk-through" class="text-zinc-300 hover:text-emerald-400 normal-case tracking-normal">cjdavis766@gmail.com</a>
+      </div>
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated counts only; nothing live is claimed */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="grid grid-cols-2 gap-2.5">
+        <PhysicalCard title="Tables" value="2" sub="INSERT-only" />
+        <PhysicalCard title="Fences" value="9" sub="writer.py · 2026-10-11" />
+        <PhysicalCard title="Tests" value="63" sub="collected 2026-10-11" />
+        <PhysicalCard title="Kills" value="1" sub="tamper-evident · 2026-07-01" success />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3 flex items-center justify-between">
+          <span>ledger.db</span>
+          <span class="bg-zinc-800 text-zinc-300 px-1 py-0.5 rounded-sm">local copy · 2026-10-11</span>
+        </div>
+        <div class="font-mono text-[10px] bg-[#050505] border border-zinc-800/60 rounded-sm p-3">
+          <div class="space-y-2 text-zinc-400">
+            <div class="flex justify-between gap-2">
+              <span>frozen_reads</span>
+              <span class="text-zinc-200">99</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>resolutions</span>
+              <span class="text-zinc-200">86</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>voids (tombstones)</span>
+              <span class="text-zinc-200">1 &middot; 2026-07-06</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>rows removed by hand</span>
+              <span class="text-amber-400">20 &middot; 2026-07-02</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span>hard-fail sites</span>
+              <span class="text-zinc-200">29 &middot; writer.py</span>
+            </div>
+          </div>
+        </div>
+        <div class="font-mono text-[10px] text-zinc-400 mt-2 leading-snug">
+          read-only counts, one of two ledger copies &middot; page built {builtAt}
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

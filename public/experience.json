@@ -1,0 +1,97 @@
+{
+  "$schema": "https://jsonresume.org/schema/",
+  "_version": "2.0.0",
+  "_last_updated": "2026-10-11",
+  "_rule": "Every number in this file sits in a sentence with its date or its method. A status is present tense only if it was measured on the date shown.",
+
+  "basics": {
+    "name": "Ladon Davis",
+    "label": "Software Engineer — AI Applications",
+    "location": { "city": "Seattle", "region": "WA", "countryCode": "US" },
+    "email": "cjdavis766@gmail.com",
+    "url": "https://www.viceatlas.com",
+    "summary": "I build systems that grade their own work.",
+    "profiles": [
+      { "network": "GitHub", "username": "viceatlas", "url": "https://github.com/viceatlas" }
+    ]
+  },
+
+  "work": [
+    {
+      "name": "Self-employed",
+      "position": "Software Engineer — Independent",
+      "location": "Seattle, WA",
+      "startDate": "2020",
+      "summary": "Building and shipping software since 2020. viceatlas.com is live: a consumer product I built and run alone. Next.js, TypeScript, Supabase/Postgres.",
+      "highlights": [
+        "viceatlas.com: 1,355 prerendered routes in the Next.js build of 2026-08-31 and 1,323 URLs in the live sitemap on 2026-10-11; 47 re-runnable Postgres migrations and 84 row-level-security policy statements in the repo (count of 2026-10-11); 209 production deployments to Vercel from 2026-05-04 to 2026-09-24 (GitHub Deployments API, 2026-10-11).",
+        "viceatlas.com operations: a public health endpoint (/api/health); 6 Vercel cron routes and 2 scheduled GitHub Actions workflows, secret-authenticated, 100 of 100 recent runs green each on 2026-10-11; a re-runnable live-fire certification against production (an 8-stage account lifecycle with a row-level-security negative test, plus a 20-route status sweep; committed 2026-07-15).",
+        "viceatlas.com hardening: Discord OAuth and magic-link sign-in via Supabase Auth; comment moderation that fails closed to a human review queue; per-user rate limits enforced in Postgres (13 BEFORE INSERT triggers, 30 writes a minute); edge middleware that fails open; one root-cause incident write-up (2026-08-13).",
+        "LLM research pipeline: a TypeScript monorepo (Fastify 5, BullMQ 5, Prisma 7 on Postgres, Anthropic SDK; custom orchestration, strict JSON output contracts with fail-loud parsing) running a 7-step pipeline (plan, search, fetch, extract, synthesize, verify, package) into an Obsidian vault and six Discord channels; 411 test cases across 25 vitest files (static count, 2026-10-11); deployed to a 24/7 VPS cron in July 2026.",
+        "Evaluation in the production path: an adversarial LLM-as-judge scores every synthesized claim against its fetched evidence under a versioned rubric; 205 of 232 claims judged supported across 30 official runs from 2026-03-25 to 2026-10-08 (88.4%, Wilson 95% interval 83.6–91.9%), and 81 of 84 across the six cloud-era runs since 2026-08-14 (96.4%). Not yet validated against human labels.",
+        "A prompt-version calibration gate, wired to exit 1: a new prompt version ships only if its first 10 scored predictions match or beat the last 10 of the prior version on directional win rate, locked once filled; 14 tests (2026-10-11).",
+        "The_Ledger: two append-only tables and nine write-time fences (seven at birth, two added after an incident); every system deposits its prediction before the outcome exists and is graded after; 63 tests collected 2026-10-11. After the first backfill import faked its own timestamps and had to be removed with raw SQL around my own kernel, I built void_deposit (an immutable tombstone), a kind-registry fence, and two audits that fail on a reconstruction of that incident.",
+        "Quantitative forecasting engines (Python, paper only): walk-forward, leak-free calibration with shrunk-Wilson lower bounds per bucket; purged, embargoed walk-forward splits with session-block bootstrap verdicts over 10.13M labeled outcomes from nine years of SPY minute bars (2026-07-03 run), where 0 of 36 cells cleared a gate frozen in the ledger on 2026-07-01 at 23:56 UTC, before the data; 619 tests collected on the flagship engine and 130 on the SPY engine (2026-10-11).",
+        "Overnight options decision engine (SPY 1DTE credit spreads; FastAPI, Pydantic v2, SQLAlchemy async): a deterministic gate hierarchy with a runtime check that raises on violation; a verdict frozen about 15:35 ET and graded against the next open; 66 nightly decisions from 2026-04-01 to 2026-10-09, 60 graded, 33 nights with a paper position and 2 short-strike breaches at the open (vault record, 2026-10-11). Realized overnight variance exceeded implied by about 27%; the edge question closed and the engine stayed paper.",
+        "Seven-plus systems on one VPS and one Windows machine under a book of the whole with nine laws, a drift checker and a decision queue; when measurement showed four programs claiming one daily slot, the fix was one slot-owner per era and builds fenced to windows.",
+        "Three client sites shipped on Next.js: findyourlightpsychiatry.org, a Seattle-area psychiatric practice with statewide telehealth, HIPAA-positioned (live, checked 2026-10-11); a personal site for a Tulsa entrepreneur (delivered 2026-04-12; domain parked on 2026-10-11); First Choice Auto Spa, a mobile detailing business in Tulsa and Oklahoma City (built April 2026; domain parked on 2026-10-11)."
+      ]
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "self-grading-demo",
+      "description": "An agent pipeline that grades its own output: LLM-as-judge, sha256-frozen rubric, hash-chained ledger with a --verify command. Public since 2026-08-13; version 2 of 2026-10-11. From a clean clone on 2026-10-11: python demo.py exits 0 in 0.34 s with no dependencies beyond the standard library, and 18 of 18 tests pass.",
+      "url": "https://github.com/viceatlas/self-grading-demo",
+      "keywords": ["Python", "LLM-as-judge", "evals", "standard library only"]
+    },
+    {
+      "name": "viceatlas.com",
+      "description": "A consumer product I built and run alone (Next.js, TypeScript, Supabase/Postgres), live since 2026-07-15 and built for the GTA 6 launch on 2026-11-19. Health at /api/health, which anyone can curl.",
+      "url": "https://www.viceatlas.com",
+      "keywords": ["Next.js", "TypeScript", "Supabase", "Postgres", "Vercel"]
+    },
+    {
+      "name": "role-scout",
+      "description": "A job-discovery pipeline over ATS APIs, public since 2026-08-13: the model scores APPLY, MAYBE or SKIP, SQLite records, a human approves everything and nothing auto-sends. The --demo path is keyless (20 fixture jobs); 30 of 31 tests pass from a clean clone on 2026-10-11, the one failure being a stale live board.",
+      "url": "https://github.com/viceatlas/role-scout",
+      "keywords": ["Python", "SQLite", "OpenAI API", "human-in-the-loop"]
+    },
+    {
+      "name": "Quantitative forecasting engines",
+      "description": "Three Python engines, paper only: walk-forward calibration, purged and embargoed splits, block-bootstrap verdicts, and kill bars frozen in the ledger before the data. Tests collected 2026-10-11: 619, 130 and 228. Measured no edge; kept the measurement machine. Source private.",
+      "keywords": ["Python", "FastAPI", "Pydantic v2", "SQLAlchemy", "calibration", "walk-forward"]
+    },
+    {
+      "name": "The honest machine",
+      "description": "The apparatus of proof around every system: calls frozen before outcomes, kill bars written first and honored (exactly one tamper-evident kill so far, the drift coin, its bar frozen 2026-07-01), failures placed on a ladder before they are fixed, the operator graded as a component (0 of 15 operator-action legs on 2026-09-20). Source private.",
+      "keywords": ["SQLite", "append-only ledger", "preregistration", "failure ladder"]
+    }
+  ],
+
+  "skills": [
+    {
+      "name": "AI/LLM",
+      "keywords": ["Anthropic SDK (Claude)", "OpenAI API", "multi-stage LLM workflows", "strict JSON output contracts", "LLM-as-judge evaluation", "versioned rubrics", "prompt regression gates", "calibration (Wilson bounds, walk-forward)"]
+    },
+    {
+      "name": "Languages",
+      "keywords": ["Python", "TypeScript", "SQL", "Node.js"]
+    },
+    {
+      "name": "Backend & data",
+      "keywords": ["FastAPI", "Pydantic v2", "SQLAlchemy (async)", "PostgreSQL", "Supabase", "SQLite", "append-only ledgers", "Next.js", "React"]
+    },
+    {
+      "name": "Infra & ops",
+      "keywords": ["Linux VPS", "cron orchestration", "GitHub Actions", "Vercel", "health checks", "fail-closed design", "pytest", "vitest", "Playwright", "Git"]
+    }
+  ],
+
+  "open_to": {
+    "roles": ["Software Engineer", "Applied AI"],
+    "location": "Seattle, WA — on-site or hybrid first",
+    "remote": "considered"
+  }
+}

@@ -1,0 +1,45 @@
+---
+/**
+ * Code window with caption + line numbers + description block beneath.
+ * Direct 1:1 port of `shared.tsx::CodeDecision` (lines 99-123).
+ *
+ * Slots:
+ *   default: the code text (will render inside <pre>-style flex column)
+ *   description: the prose explanation rendered beneath the code window
+ *
+ * Props:
+ *   caption — short label shown above code (e.g. "scripts/today.ts:42")
+ *   language — language label shown on the right (default "typescript")
+ *   lines — array of line numbers to render in the gutter (e.g. [40,41,42,43])
+ */
+interface Props {
+  caption: string;
+  language?: string;
+  lines?: number[];
+}
+const { caption, language = 'typescript', lines } = Astro.props;
+---
+
+<div class="mb-8">
+  <div class="bg-[#050505] border border-zinc-800/80 rounded-sm shadow-lg overflow-hidden flex flex-col font-mono text-[12px] md:text-[13px] leading-[1.6] mb-3">
+    <div class="bg-zinc-900/50 border-b border-zinc-800 px-4 py-2 text-[10px] text-zinc-500 uppercase tracking-widest flex justify-between items-center">
+      <span class="flex items-center gap-2">
+        <span class="text-emerald-500/80">&gt;</span> {caption}
+      </span>
+      <span>{language}</span>
+    </div>
+    <div class="p-4 flex overflow-x-auto">
+      {lines && (
+        <div class="text-zinc-700 text-right pr-4 select-none flex flex-col shrink-0">
+          {lines.map((n) => <span>{n}</span>)}
+        </div>
+      )}
+      <div class="text-zinc-300 whitespace-pre flex flex-col">
+        <slot />
+      </div>
+    </div>
+  </div>
+  <div class="text-[14px] leading-relaxed text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1">
+    <slot name="description" />
+  </div>
+</div>

@@ -1,0 +1,386 @@
+---
+import Workspace from '../layouts/Workspace.astro';
+import PhysicalCard from '../components/PhysicalCard.astro';
+import TagChip from '../components/TagChip.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import CodeDecision from '../components/CodeDecision.astro';
+import TerminalBlock from '../components/TerminalBlock.astro';
+import PointerButton from '../components/PointerButton.astro';
+import ImageWithFallback from '../components/ImageWithFallback.astro';
+
+// The five sources the scrape stage knows (src/scrape_jobs.py:42-106, read 2026-10-11).
+const sources = [
+  { name: 'Greenhouse', how: 'public board API' },
+  { name: 'Lever',      how: 'public postings API' },
+  { name: 'Ashby',      how: 'public job-board API' },
+  { name: 'Wellfound',  how: '__NEXT_DATA__ extraction · off by default (config.sample.yaml:76)' },
+  { name: 'Generic',    how: 'Playwright + CSS selectors · off by default (config.sample.yaml:78)' },
+];
+
+// The human gate, verbatim from the tracker model's comment (src/tracker/tracker.py:64).
+const statusFlow = ['to_review', 'approved', 'applied', 'interviewing', 'offer | rejected | withdrawn'];
+
+// What a fresh git clone did on 2026-10-11 (a reviewer's clone, not this tree).
+const cleanClone = [
+  { cmd: 'python main.py --demo', result: '20 sample jobs into SQLite; Flask UI up; every probed route 200' },
+  { cmd: 'python -m pytest tests', result: '31 collected · 30 passed · 1 failed (a stale live board)' },
+  { cmd: 'python -m pytest -m "not integration"', result: '27 passed · no network' },
+  { cmd: 'git log -p --all | grep -iE "sk-|api_key|secret"', result: 'no key material anywhere in the history' },
+];
+
+// What the same clean clone showed that still needs fixing. Dated; each is a fix-list item.
+const gaps = [
+  {
+    id: '01',
+    name: 'STALE_LIVE_TEST',
+    desc: '30 of 31 tests pass. The failure is test_scrape_known_board: the Greenhouse board it points at ("openai") returns 404 now, so the scraper correctly returns an empty list and the assertion fails. The scraper works against boards that exist; the fixture went stale.',
+  },
+  {
+    id: '02',
+    name: 'NO_TESTS_ON_THE_LLM_STAGES',
+    desc: 'Parse, score and tailor have no tests, mocked or otherwise. _validate_intelligence (section 03) is the most testable thing in the repo and is first in line.',
+  },
+  {
+    id: '03',
+    name: 'README_DRIFT',
+    desc: 'The quickstart clone URL is a placeholder, the README says MIT but the repo has no LICENSE file, and it lists Workday among the scrapers when workday.py is a stub that nothing calls.',
+  },
+  {
+    id: '04',
+    name: 'LIVE_MODE_IS_OFF',
+    desc: 'Live mode needs a funded OpenAI key, and I am not running one today, so nothing runs on a schedule. The keyless demo is deterministic sample data, which is the honest thing to show.',
+  },
+];
+---
+
+<Workspace
+  title="Role Scout · Ladon Davis"
+  workspacePath="WORK/ROLE-SCOUT.MD"
+  bottomNavFile="work/role-scout.md"
+  description="Role Scout: a job-discovery pipeline over ATS APIs. The model scores APPLY, MAYBE or SKIP against a profile, SQLite records, a human approves everything. Public repo since 2026-08-13; keyless demo; runs on the OpenAI API."
+>
+  <div class="max-w-[840px] mx-auto w-full">
+
+    {/* PAGE HEADER */}
+    <div class="mb-8">
+      <div class="font-mono text-[11px] text-zinc-400 mb-4 tracking-widest">
+        ~/WORKSPACE/WORK/ROLE-SCOUT.MD
+      </div>
+      <h1 class="text-zinc-100 font-tight font-bold text-4xl tracking-tight mb-6">
+        Role Scout
+      </h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] px-2 py-1 font-mono rounded-sm uppercase tracking-widest">Public repo &middot; since 2026-08-13</span>
+        <TagChip>Python</TagChip>
+        <TagChip>Flask</TagChip>
+        <TagChip>SQLAlchemy</TagChip>
+        <TagChip>SQLite</TagChip>
+        <TagChip>OpenAI API</TagChip>
+        <TagChip>Tenacity</TagChip>
+        <TagChip>Next.js 14 (demo)</TagChip>
+      </div>
+    </div>
+
+    {/* HERO: THE DEMO APP — his own demo, run locally; the PNG's strings are at src/ui/static/js/pages/Dashboard.js:63,74 */}
+    <div class="mb-12">
+      <div class="relative aspect-video lg:aspect-[16/9] w-full shrink-0 border border-emerald-500/40 p-1 bg-[#050505] rounded-sm group overflow-hidden">
+        <div class="absolute top-0 right-0 z-20 bg-emerald-500 text-zinc-950 text-[9px] font-bold font-mono px-1.5 py-0.5 uppercase tracking-widest translate-x-[1px] -translate-y-[1px]">
+          LOCAL_DEMO
+        </div>
+        <a
+          href="https://github.com/viceatlas/role-scout"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Role Scout on GitHub (opens in a new tab)"
+          class="block w-full h-full relative overflow-hidden border border-zinc-800"
+        >
+          <picture class="block w-full h-full">
+            <source srcset="/role_scout_hero.webp" type="image/webp" />
+            <ImageWithFallback
+              src="/role_scout_hero.png"
+              alt="The Role Scout review dashboard, the keyless demo app from the repo running locally on sample data: The Core page with pipeline health and the top matches."
+              width={1200}
+              height={564}
+              class="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+            />
+          </picture>
+        </a>
+      </div>
+      <div class="text-[11px] font-mono text-zinc-400 mt-3 flex flex-col sm:flex-row sm:justify-between gap-1">
+        <span>&gt; the keyless demo app from the repo, run locally (python main.py --demo) &middot; sample data</span>
+        <span class="shrink-0">screenshot 2026-04-26</span>
+      </div>
+    </div>
+
+    {/* METRIC STAT ROW — each value carries its date or method */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-14">
+      <PhysicalCard title="Sources" value="5" sub="Greenhouse · Lever · Ashby +2" />
+      <PhysicalCard title="Stages" value="4" sub="scrape → parse → score → tailor" />
+      <PhysicalCard title="Tests" value="30 / 31" sub="clean clone · 2026-10-11" />
+      <PhysicalCard title="Who approves" value="A human" sub="nothing auto-sends" success />
+    </div>
+
+    {/* SECTION 01: WHAT IT DOES */}
+    <SectionHeader num="01" title="What it does" />
+    <div class="space-y-5 text-[15px] md:text-[16px] leading-relaxed text-zinc-300 font-sans mb-12">
+      <p>
+        Job boards are volume-first. Role Scout is the filter I wrote for my own search. It pulls postings from the public APIs of Greenhouse, Lever and Ashby (a Wellfound scraper and a Playwright one exist, off by default), parses each posting into structured fields with a cheaper model, scores it APPLY, MAYBE or SKIP against my profile with GPT-4o, and for the APPLY rows drafts resume bullets, a cover letter and a recruiter message. Everything is a row in SQLite and shows up in a Flask review UI.
+      </p>
+      <p>
+        The model proposes, SQLite records, a human approves everything. Nothing auto-sends: the auto-apply module is a stub that raises (src/apply/form_filler.py:29), and the recruiter template is stamped "[DRAFT &mdash; always personalize before sending; nothing auto-sends]" (config.sample.yaml:37). It runs on the OpenAI API: gpt-4o for scoring and tailoring, gpt-4o-mini for parsing. Live mode needs your own key. Nothing here runs on a schedule today; the keyless demo is the way to see it.
+      </p>
+    </div>
+
+    {/* SECTION 02: ARCHITECTURE — the four stages, then the human gate that replaces the April cost chart */}
+    <SectionHeader num="02" title="Architecture" />
+
+    <div class="mb-8">
+      <div class="w-full overflow-x-auto bg-[#050505] border border-zinc-800/80 rounded-sm p-6 relative select-none">
+        <svg class="w-full min-w-[700px] h-[280px]" viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four stages left to right: SCRAPE over HTTP, PARSE with gpt-4o-mini, SCORE with gpt-4o producing APPLY, MAYBE or SKIP, and TAILOR with gpt-4o for APPLY decisions only.">
+          <defs>
+            <filter id="rs-rough">
+              <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <marker id="rs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="none" stroke="#a1a1aa" stroke-width="1.5" filter="url(#rs-rough)" />
+            </marker>
+          </defs>
+
+          <g filter="url(#rs-rough)" fill="none" stroke-width="2">
+            {/* 4 stage boxes */}
+            <rect x="20"  y="40" width="160" height="60" stroke="#71717a" />
+            <rect x="220" y="40" width="160" height="60" stroke="#71717a" />
+            <rect x="420" y="40" width="160" height="60" stroke="#71717a" />
+            <rect x="620" y="40" width="160" height="60" stroke="#10b981" />
+
+            {/* Connecting arrows */}
+            <path d="M 180 70 L 215 70" stroke="#a1a1aa" marker-end="url(#rs-arrow)" />
+            <path d="M 380 70 L 415 70" stroke="#a1a1aa" marker-end="url(#rs-arrow)" />
+            <path d="M 580 70 L 615 70" stroke="#a1a1aa" marker-end="url(#rs-arrow)" />
+
+            {/* Below SCORE: the APPLY / MAYBE / SKIP decision */}
+            <path d="M 500 100 L 500 170" stroke="#a1a1aa" marker-end="url(#rs-arrow)" />
+            <rect x="380" y="170" width="240" height="40" stroke="#fbbf24" stroke-dasharray="4 4" />
+
+            {/* Only APPLY reaches TAILOR */}
+            <path d="M 620 190 C 660 190, 680 190, 700 105" stroke="#10b981" stroke-dasharray="3 3" marker-end="url(#rs-arrow)" />
+          </g>
+
+          {/* Stage names */}
+          <g class="font-hand text-[20px] fill-zinc-300" text-anchor="middle">
+            <text x="100" y="68">SCRAPE</text>
+            <text x="300" y="68">PARSE</text>
+            <text x="500" y="68">SCORE</text>
+            <text x="700" y="68" class="fill-emerald-400">TAILOR</text>
+          </g>
+
+          {/* Model per stage — the code's names (jd_parser.py, score.py, main.py) */}
+          <g class="font-mono text-[10px] fill-zinc-400" text-anchor="middle">
+            <text x="100" y="120">HTTP · public ATS APIs</text>
+            <text x="300" y="120">gpt-4o-mini</text>
+            <text x="500" y="120">gpt-4o</text>
+            <text x="700" y="120" class="fill-emerald-400">gpt-4o · APPLY only</text>
+          </g>
+
+          {/* The decision */}
+          <g class="font-hand text-[16px] fill-amber-400" text-anchor="middle">
+            <text x="500" y="195">APPLY · MAYBE · SKIP</text>
+          </g>
+          <g class="font-mono text-[10px] fill-zinc-400" text-anchor="middle">
+            <text x="500" y="225">every decision is a row, SKIPs included</text>
+          </g>
+
+          {/* Annotation */}
+          <g class="font-hand text-[14px] fill-zinc-400">
+            <text x="600" y="265" transform="rotate(-2 600 265)">only APPLY decisions reach Tailor</text>
+          </g>
+        </svg>
+      </div>
+      <div class="mt-4 text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic">
+        Four stages, one module each: src/scrape_jobs.py, src/parser/jd_parser.py, src/scoring/score.py, src/tailorer/. Only APPLY decisions reach Tailor (main.py:124-126, :169-173). The model names are the code's. No cost figures on this page: I have no run receipts to quote, and an estimate is not a measurement. All file:line references were read on 2026-10-11.
+      </div>
+    </div>
+
+    {/* The human gate */}
+    <div class="mb-12">
+      <div class="bg-[#050505] border border-zinc-800/80 rounded-sm p-5">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+          <span>Status workflow &middot; src/tracker/tracker.py:64</span>
+          <span>every row starts at to_review</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 font-mono text-[12px]">
+          {statusFlow.map((s, i) => (
+            <Fragment>
+              <span class={`px-2 py-1 rounded-sm border ${i === 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-zinc-900/50 text-zinc-300 border-zinc-800'}`}>{s}</span>
+              {i !== statusFlow.length - 1 && <span class="text-zinc-500">&rarr;</span>}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      <div class="mt-4 text-[13px] text-zinc-400 font-sans border-l-2 border-zinc-800 pl-4 py-1 leading-relaxed italic">
+        Every scored posting becomes a row, SKIPs included. The status column starts at to_review and only the human moves it (update_status, tracker.py:164-173). The pipeline never applies.
+      </div>
+    </div>
+
+    {/* SECTION 03: PATTERNS — every caption verified against the repo on 2026-10-11 */}
+    <SectionHeader num="03" title="Patterns" />
+    <div class="space-y-5 text-[15px] leading-relaxed text-zinc-300 font-sans mb-6">
+      <p>
+        Three pieces of the real code, quoted at the lines where they live. Nothing illustrative on this page.
+      </p>
+    </div>
+    <div class="mb-12">
+      <CodeDecision
+        caption="src/utils.py:64-75 — retries with backoff, behind a rate limiter"
+        language="python"
+        lines={[64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75]}
+      >
+        <span><span class="text-rose-400">@retry</span>(</span>
+        <span>    stop=stop_after_attempt(<span class="text-[#a78bfa]">3</span>),</span>
+        <span>    wait=wait_exponential(multiplier=<span class="text-[#a78bfa]">1</span>, min=<span class="text-[#a78bfa]">2</span>, max=<span class="text-[#a78bfa]">30</span>),</span>
+        <span>    retry=retry_if_exception_type((RateLimitError, APITimeoutError, APIConnectionError)),</span>
+        <span>    before_sleep=<span class="text-rose-400">lambda</span> rs: _logger.warning(</span>
+        <span>        <span class="text-[#e2cb85]">"LLM retry %d: %s"</span>, rs.attempt_number, rs.outcome.exception()</span>
+        <span>    ),</span>
+        <span>)</span>
+        <span><span class="text-rose-400">def</span> <span class="text-emerald-400">llm_chat</span>(client, **kwargs):</span>
+        <span>    <span class="text-zinc-500 italic">"""Retry-wrapped OpenAI chat completions call with rate limiting."""</span></span>
+        <span>    _rate_limiter.acquire()</span>
+        <span>    <span class="text-rose-400">return</span> client.chat.completions.create(**kwargs)</span>
+        <Fragment slot="description">
+          Three attempts, exponential backoff between 2 and 30 seconds, only for the exception classes that mean "try again" (rate limit, timeout, connection). A token-bucket limiter (RateLimiter, utils.py:34-61, 50 a minute) is acquired before every call, so a batch can't exceed the limit no matter how many postings are queued. HTTP fetches get the same treatment, with a 429 promoted to a retryable error (resilient_get, utils.py:92-107). The April version of this page showed a semaphore here; there is no semaphore in the repo.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="src/scoring/score.py:146-159 — hardening the model's answer"
+        language="python"
+        lines={[146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159]}
+      >
+        <span>    <span class="text-zinc-500 italic"># Enforce decision enum</span></span>
+        <span>    decision = str(result.get(<span class="text-[#e2cb85]">"decision"</span>, <span class="text-[#e2cb85]">"SKIP"</span>)).upper()</span>
+        <span>    <span class="text-rose-400">if</span> decision <span class="text-rose-400">not in</span> (<span class="text-[#e2cb85]">"APPLY"</span>, <span class="text-[#e2cb85]">"MAYBE"</span>, <span class="text-[#e2cb85]">"SKIP"</span>):</span>
+        <span>        <span class="text-rose-400">if</span> result[<span class="text-[#e2cb85]">"relevance_score"</span>] &gt;= <span class="text-[#a78bfa]">70</span>:</span>
+        <span>            decision = <span class="text-[#e2cb85]">"APPLY"</span></span>
+        <span>        <span class="text-rose-400">elif</span> result[<span class="text-[#e2cb85]">"relevance_score"</span>] &gt;= <span class="text-[#a78bfa]">50</span>:</span>
+        <span>            decision = <span class="text-[#e2cb85]">"MAYBE"</span></span>
+        <span>        <span class="text-rose-400">else</span>:</span>
+        <span>            decision = <span class="text-[#e2cb85]">"SKIP"</span></span>
+        <span>    result[<span class="text-[#e2cb85]">"decision"</span>] = decision</span>
+        <span>&nbsp;</span>
+        <span>    <span class="text-zinc-500 italic"># Enforce decision-score consistency</span></span>
+        <span>    <span class="text-rose-400">if</span> decision == <span class="text-[#e2cb85]">"APPLY"</span> <span class="text-rose-400">and</span> result[<span class="text-[#e2cb85]">"relevance_score"</span>] &lt; <span class="text-[#a78bfa]">50</span>:</span>
+        <span>        result[<span class="text-[#e2cb85]">"decision"</span>] = <span class="text-[#e2cb85]">"MAYBE"</span></span>
+        <Fragment slot="description">
+          Scoring asks for JSON and gets JSON, but a number can arrive as a string, a decision can arrive as "yes", and an APPLY can arrive with a score of 40. This function clamps the score (lines 138-144), falls back to score bands, and demotes an inconsistent APPLY to MAYBE. Two honest notes. This is the opposite philosophy to my public judge demo, which crashes loud on anything malformed: a batch over hundreds of postings coerces and continues per job, which is right for one bad posting and wrong for a systemic failure like a dead API key, where the run should abort. And as of 2026-10-11 this function has no tests. Both are on the fix list.
+        </Fragment>
+      </CodeDecision>
+
+      <CodeDecision
+        caption="src/apply/form_filler.py:21-32 — the auto-apply module refuses"
+        language="python"
+        lines={[21, 28, 29, 30, 31, 32]}
+      >
+        <span><span class="text-rose-400">def</span> <span class="text-emerald-400">fill_application</span>(url: str, resume_file: str, user_info: dict):</span>
+        <span>    logger.info(<span class="text-[#e2cb85]">"Form filling not implemented. Apply manually at: %s"</span>, url)</span>
+        <span>    <span class="text-rose-400">raise</span> NotImplementedError(</span>
+        <span>        <span class="text-[#e2cb85]">"Form filling is not implemented. "</span></span>
+        <span>        <span class="text-[#e2cb85]">"Use the review dashboard to copy materials and apply manually."</span></span>
+        <span>    )</span>
+        <Fragment slot="description">
+          Deliberate. The design has the human read the tailored materials in the dashboard, then apply by hand. The module exists so the boundary is written down in code rather than left to habit. The gutter skips the docstring (lines 22-27), which says the same thing in prose.
+        </Fragment>
+      </CodeDecision>
+    </div>
+
+    {/* SECTION 04: KNOWN GAPS — dated, from the clean-clone review */}
+    <SectionHeader num="04" title="Known gaps, 2026-10-11" />
+    <p class="text-[15px] leading-relaxed text-zinc-300 font-sans mb-8">
+      What a fresh git clone showed on 2026-10-11. I'd rather you read these here than find them.
+    </p>
+    <div class="space-y-6 mb-16">
+      {gaps.map((g) => (
+        <div class="flex flex-col gap-1">
+          <div class="font-mono text-[12px] md:text-[13px] text-zinc-300">
+            <span class="text-amber-400/80">[{g.id}]</span> {g.name}
+          </div>
+          <div class="font-sans text-[14px] md:text-[15px] text-zinc-400 pl-8 border-l border-zinc-800/80 ml-[13px] py-0.5">
+            {g.desc}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* SECTION 05: RUN IT */}
+    <SectionHeader num="05" title="Run it yourself" />
+    <p class="text-[15px] leading-relaxed text-zinc-300 font-sans mb-6">
+      The demo path needs no key. It loads 20 sample jobs into SQLite and serves the review UI on localhost. (The sources table: {sources.map((s) => s.name).join(', ')}.)
+    </p>
+    <TerminalBlock path="~" command="git clone https://github.com/viceatlas/role-scout">
+      <div class="text-zinc-300">cd role-scout</div>
+      <div class="text-zinc-300">pip install -r requirements.txt</div>
+      <div class="text-zinc-300">python main.py --demo</div>
+      <div class="text-zinc-400"># 20 sample jobs into SQLite &middot; Flask UI on localhost:5000 &middot; no API key needed</div>
+    </TerminalBlock>
+
+    {/* FOOTER */}
+    <div class="border-t border-zinc-800/80 pt-12 pb-24">
+      <div class="grid gap-2">
+        <PointerButton href="https://github.com/viceatlas/role-scout" label="github.com/viceatlas/role-scout" desc="the repo · public since 2026-08-13" external />
+        <PointerButton href="/self-grading-demo" label="~/WORKSPACE/WORK/SELF-GRADING-DEMO.MD" desc="the smaller repo; read it first" />
+        <PointerButton href="/" label="~/WORKSPACE/RESUME/ABOUT.MD" desc="home" />
+      </div>
+      <div class="text-zinc-400 font-mono text-[11px] uppercase tracking-widest text-center mt-8">
+        Built solo &middot; a human approves everything &middot; OpenAI API
+      </div>
+    </div>
+
+    <div class="flex items-center text-zinc-600 font-mono text-[12px] select-none opacity-50 pb-8">
+      EOF <span class="ml-2 w-1.5 h-3 bg-zinc-400 inline-block cursor-blink"></span>
+    </div>
+  </div>
+
+  {/* OBSERVABILITY SLOT — dated facts only */}
+  <Fragment slot="observability">
+    <div class="flex flex-col gap-6">
+      <div class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">clean clone &middot; 2026-10-11</div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <PhysicalCard title="Public since" value="Aug 13" sub="2026 · GitHub" />
+        <PhysicalCard title="Tests" value="30 / 31" sub="1 stale board" />
+        <PhysicalCard title="Demo" value="keyless" sub="20 sample jobs" success />
+        <PhysicalCard title="Secrets" value="none" sub="full history" />
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3 flex items-center justify-between">
+          <span>Clean-clone receipts</span>
+          <span class="bg-zinc-800 text-zinc-400 px-1 py-0.5 rounded-sm">2026-10-11</span>
+        </div>
+        <div class="font-mono text-[10px] bg-[#050505] border border-zinc-800/60 rounded-sm p-3">
+          <div class="space-y-3 text-zinc-400">
+            {cleanClone.map((c) => (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-zinc-300 break-all">$ {c.cmd}</span>
+                <span>{c.result}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <div class="text-[10px] uppercase tracking-widest text-zinc-400 font-sans font-bold mb-3">Sources</div>
+        <div class="flex flex-col gap-2 font-mono text-[10px] text-zinc-400">
+          {sources.map((s) => (
+            <div class="flex gap-2">
+              <span class="text-zinc-300 shrink-0 w-[70px]">{s.name}</span>
+              <span>{s.how}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Fragment>
+</Workspace>

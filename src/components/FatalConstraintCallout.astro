@@ -1,0 +1,22 @@
+---
+/**
+ * Rose-bordered callout for the most important constraint on a page.
+ * Used on the 404 page (WORKSPACE INTEGRITY) and wherever one rule must
+ * dominate visually.
+ */
+interface Props {
+  label?: string;
+}
+const { label = 'FATAL CONSTRAINT' } = Astro.props;
+---
+
+<div
+  class="my-6 rounded-r-md border-l-[3px] border-(--color-rose) bg-(--color-rose-soft) px-5 py-3.5 font-mono text-[13px]"
+>
+  <div class="mb-1 text-[10px] uppercase tracking-[0.1em] text-(--color-rose)">
+    {label}
+  </div>
+  <div class="text-(--color-fg)">
+    <slot />
+  </div>
+</div>

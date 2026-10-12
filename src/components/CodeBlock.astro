@@ -1,0 +1,18 @@
+---
+/**
+ * Code block with file:line caption. Wrap your <code> in default slot.
+ * Pairs with TerminalBlock for the "shown after `cat`" pattern.
+ */
+interface Props {
+  caption: string;
+  language?: string;
+}
+const { caption, language = 'python' } = Astro.props;
+---
+
+<figure class="my-6">
+  <pre class="physical-edge overflow-x-auto rounded-md border border-(--color-border) bg-(--color-bg-elev) px-5 py-4 font-mono text-[13px] leading-[1.55]"><code class={`language-${language}`}><slot /></code></pre>
+  <figcaption class="mt-2 px-1 font-mono text-[11px] text-(--color-fg-faint)">
+    {caption}
+  </figcaption>
+</figure>

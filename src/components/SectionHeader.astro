@@ -1,0 +1,23 @@
+---
+/**
+ * Section divider — `01 // The Title` in monospace caption style.
+ * Ported from `shared.tsx::SectionHeader` (lines 91-97); now a real <h2> so the
+ * page outline reads h1 → h2 → h3 for screen readers and crawlers. The number
+ * and the slashes are decoration, hidden from the accessible name, so the
+ * heading reads as just its title.
+ *
+ * Tailwind's preflight resets h2 to inherit size and weight, so the look is
+ * unchanged from the <div> version.
+ */
+interface Props {
+  num: string;
+  title: string;
+}
+const { num, title } = Astro.props;
+---
+
+<h2 class="text-[13px] font-mono font-normal text-zinc-400 mb-4 tracking-widest uppercase mt-12 flex items-center gap-3">
+  <span class="text-zinc-500" aria-hidden="true">{num}</span>
+  <span class="text-zinc-600" aria-hidden="true">//</span>
+  <span class="text-zinc-300">{title}</span>
+</h2>

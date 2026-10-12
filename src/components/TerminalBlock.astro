@@ -1,0 +1,30 @@
+---
+/**
+ * Terminal command block: shows `sys@local : <path> $ <command>` followed by output.
+ * Use the default slot for the output (one line per <div> for proper layout).
+ *
+ * Example:
+ *   <TerminalBlock path="~/stack/scholar" command="cat config.yaml | head -3">
+ *     <div>line 1 of output</div>
+ *     <div>line 2 of output</div>
+ *   </TerminalBlock>
+ */
+interface Props {
+  path: string;
+  command: string;
+}
+const { path, command } = Astro.props;
+---
+
+<div
+  class="physical-edge mb-6 rounded-md border border-(--color-border) bg-(--color-bg-elev) px-5 py-4 font-mono text-[13px] leading-[1.7]"
+>
+  <div>
+    <span class="text-(--color-emerald)">sys@local</span>
+    <span class="text-(--color-fg-muted)">: {path} $</span>
+    <span class="text-(--color-fg)"> {command}</span>
+  </div>
+  <div class="mt-1 space-y-[2px] text-(--color-fg-muted)">
+    <slot />
+  </div>
+</div>

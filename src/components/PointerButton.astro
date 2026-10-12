@@ -1,0 +1,34 @@
+---
+/**
+ * Terminal-style large button. Used for nav pointers, "Visit live site",
+ * "View source on GitHub", etc.
+ *
+ *   <PointerButton href="/honest-machine" label="~/WORKSPACE/WORK/HONEST-MACHINE.MD" desc="the ledger and the method" />
+ */
+interface Props {
+  href: string;
+  label: string;
+  desc?: string;
+  external?: boolean;
+}
+const { href, label, desc, external = false } = Astro.props;
+const targetAttrs = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+---
+
+<a
+  href={href}
+  {...targetAttrs}
+  class="physical-edge group flex items-center justify-between rounded-md border border-(--color-border) bg-(--color-bg-elev) px-4 py-3.5 font-mono text-[13px] text-(--color-fg) transition-colors duration-150 hover:border-(--color-emerald) hover:bg-(--color-bg-elev-2)"
+>
+  <span>
+    <span class="mr-1 text-(--color-emerald)" aria-hidden="true">&gt;</span>{label}
+    {external && <span class="sr-only"> (opens in a new tab)</span>}
+  </span>
+  {
+    desc && (
+      <span class="hidden font-sans text-[13px] text-(--color-fg-muted) sm:block">
+        {desc}
+      </span>
+    )
+  }
+</a>

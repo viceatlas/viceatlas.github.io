@@ -1,0 +1,32 @@
+---
+/**
+ * Image with inline-onerror fallback to a generic broken-image SVG.
+ * Direct 1:1 port of `app/components/figma/ImageWithFallback.tsx`.
+ *
+ * Astro version uses an inline `onerror` rather than React useState because
+ * we don't need re-render — we just swap the src once.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  width?: number | string;
+  height?: number | string;
+}
+const { src, alt, class: extraClass = '', width, height, ...rest } = Astro.props;
+
+// Generic SVG placeholder rendered inline if the requested src fails to load.
+// Using a data URL keeps everything self-contained, no extra HTTP requests.
+const FALLBACK =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 88 88' fill='none'%3E%3Crect width='88' height='88' rx='4' fill='%2318181b'/%3E%3Cpath d='M30 30h28v28H30z' stroke='%2352525b' stroke-width='1.5' stroke-dasharray='4 4'/%3E%3Cpath d='M44 38v12M38 44h12' stroke='%2352525b' stroke-width='1.5'/%3E%3C/svg%3E";
+---
+
+<img
+  src={src}
+  alt={alt}
+  class={extraClass}
+  width={width}
+  height={height}
+  onerror={`this.onerror=null;this.src='${FALLBACK}';`}
+  {...rest}
+/>
